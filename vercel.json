@@ -29,8 +29,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "VITE_WALLETCONNECT_PROJECT_ID": "2d9ddc37954bdd6f9f3946d72581770a"
-  }
+  ]
 }
