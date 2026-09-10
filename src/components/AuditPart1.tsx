@@ -4,38 +4,47 @@ export const AuditPart1: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <div>
-        <p className="lead-text" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-          Gemini 3.7-flash audit.
-        </p>
-        <p style={{ marginTop: '0.5rem' }}>
-          Here is the complete architectural review, mathematical verification, and security
-          analysis.
-        </p>
-      </div>
-
-      <div>
         <h3
           className="text-sm font-semibold mb-2"
           style={{ color: 'var(--accent-gold)', fontSize: '1.05rem' }}
         >
-          Executive Summary
+          1. Executive Summary
         </h3>
         <p>
-          The logic across all four contracts (<strong>[NXDv3ERC20.sol]</strong>,{' '}
-          <strong>[TaxRecipientV3.sol]</strong>, <strong>[NXDv3Protocol.sol]</strong>,{' '}
-          <strong>[NXDv3StakingVault.sol]</strong>) is{' '}
-          <strong>sound, mathematically correct, and well-architected</strong>.
+          The NXD v3 Protocol is a decentralized ecosystem integrating deflationary tokenomics,
+          autonomous liquidity balancing, multi-tier minting, and dual-asset staking rewards. The
+          protocol consists of four core contracts:
         </p>
-        <p style={{ marginTop: '0.75rem' }}>
-          The V3 architecture eliminates common DeFi pitfalls found in reflection/tax tokens by{' '}
-          <strong>
-            completely decoupling DEX swaps from the <code>_update</code> transfer hook
-          </strong>
-          . Taxes are stored directly in <code>address(this)</code> and processed asynchronously via
-          dedicated functions (<code>processTax()</code> and <code>processRewards()</code>),
-          preventing reentrancy vulnerabilities, gas limit exhaustion during user transfers, and
-          router reverts.
-        </p>
+        <ul
+          style={{
+            paddingLeft: '1.25rem',
+            marginTop: '0.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.4rem',
+            listStyleType: 'disc',
+          }}
+        >
+          <li>
+            <strong>NXDv3ERC20.sol</strong>: The native token with an autonomous 7-day epoch
+            burn-tracking engine, automated transfer tax routing, and dead-address burn redirection.
+          </li>
+          <li>
+            <strong>TaxRecipientV3.sol</strong>: A dedicated tax processor and liquidity engine that
+            liquidates tax tokens, stakes a portion into DBXen, dynamically provisions Uniswap V2
+            liquidity, and permanently locks LP tokens.
+          </li>
+          <li>
+            <strong>NXDv3Protocol.sol</strong>: The primary coordinator handling CREATE2 token
+            deployment, tiered deposit-based minting, DBXen fee harvesting, and automated multi-stage
+            reward distribution.
+          </li>
+          <li>
+            <strong>NXDv3StakingVault.sol</strong>: A dual-reward (ETH and XEN) staking vault
+            utilizing a continuous 7-day linear distribution model (Synthetix-style), complete with
+            cooldown mechanics, in-place emergency freezing, and epoch-based inflow analytics.
+          </li>
+        </ul>
       </div>
 
       <div>
@@ -43,166 +52,47 @@ export const AuditPart1: React.FC = () => {
           className="text-sm font-semibold mb-3"
           style={{ color: 'var(--accent-gold)', fontSize: '1.05rem' }}
         >
-          1. In-Depth Contract Breakdown
+          Key Architectural Strengths
         </h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.35rem' }}>
-              A. [NXDv3ERC20.sol]
+            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+              1. DEX-Decoupled Transfers
             </h4>
-            <ul
-              style={{
-                paddingLeft: '1.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.4rem',
-                listStyleType: 'disc',
-              }}
-            >
-              <li>
-                <strong>
-                  Transfer & Tax Logic (<code>_update</code> & <code>getAmountsAfterTax</code>)
-                </strong>
-                :
-                <ul
-                  style={{
-                    paddingLeft: '1.25rem',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    listStyleType: 'circle',
-                  }}
-                >
-                  <li>
-                    The 5% fee (<code>SELL_TAX_X100 = 500</code>) is calculated without executing
-                    any DEX swaps during transfers.
-                  </li>
-                  <li>
-                    <strong>Whitelist behavior</strong>:
-                    <ul
-                      style={{
-                        paddingLeft: '1.25rem',
-                        marginTop: '0.2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.2rem',
-                        listStyleType: 'square',
-                      }}
-                    >
-                      <li>
-                        <code>protocol</code>: Excluded when sender and recipient (
-                        <code>true, true</code>).
-                      </li>
-                      <li>
-                        <code>address(this)</code> & <code>taxRecipient</code>: Excluded when sender
-                        (<code>true, false</code>).
-                      </li>
-                      <li>
-                        <code>uniswapV2Pair</code>: Excluded when sender (
-                        <code>isExcludedWhenSender = true</code>).
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Resulting tax behavior</strong>:
-                    <ul
-                      style={{
-                        paddingLeft: '1.25rem',
-                        marginTop: '0.2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.2rem',
-                        listStyleType: 'square',
-                      }}
-                    >
-                      <li>
-                        <strong>BUY on Uniswap</strong>: <code>from</code> is pair →{' '}
-                        <code>isExcludedWhenSender == true</code> → <strong>0% Tax</strong>.
-                      </li>
-                      <li>
-                        <strong>SELL on Uniswap</strong>: <code>from</code> is user, <code>to</code>{' '}
-                        is pair → neither is exempt → <strong>5% Tax</strong>.
-                      </li>
-                      <li>
-                        <strong>P2P Transfer (Wallet-to-Wallet)</strong>: neither is exempt →{' '}
-                        <strong>5% Tax</strong>.
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <strong>
-                  Asynchronous Tax Engine (<code>processTax</code> & <code>_processTax</code>)
-                </strong>
-                :
-                <ul
-                  style={{
-                    paddingLeft: '1.25rem',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    listStyleType: 'circle',
-                  }}
-                >
-                  <li>
-                    Operates with reentrancy protection via <code>lockTaxProcessing</code>.
-                  </li>
-                  <li>
-                    <strong>Tax distribution</strong>:
-                    <ul
-                      style={{
-                        paddingLeft: '1.25rem',
-                        marginTop: '0.2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.2rem',
-                        listStyleType: 'square',
-                      }}
-                    >
-                      <li>
-                        <strong>40%</strong>: Swapped for DXN on Uniswap V2 (protected by{' '}
-                        <code>v2Oracle</code> TWAP and <code>slippageBpsERC20</code>), sending the
-                        output DXN to <code>taxRecipient</code>.
-                      </li>
-                      <li>
-                        <strong>30%</strong>: Burned immediately via{' '}
-                        <code>_burn(address(this), burnAmount)</code>.
-                      </li>
-                      <li>
-                        <strong>30%</strong>: Transferred as NXD to <code>taxRecipient</code> for LP
-                        pair balancing.
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    Calls <code>taxRecipient.handleTax()</code> immediately after.
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <strong>
-                  Epoch Tracking (<code>startNewEpochIfReady</code>)
-                </strong>
-                :
-                <p style={{ marginTop: '0.25rem' }}>
-                  7-day epochs (<code>EPOCH_DURATION = 7 days</code>) compute and store historical
-                  burns (<code>epochBurns[epoch] = EpochBurn(...)</code>) without unbounded storage
-                  risks.
-                </p>
-              </li>
-              <li>
-                <strong>2-Step Governance</strong>:
-                <p style={{ marginTop: '0.25rem' }}>
-                  <code>transferGovernance()</code> → <code>acceptGovernance()</code> prevents
-                  accidental lockouts by ensuring the new admin address can execute transactions
-                  before transfer completes.
-                </p>
-              </li>
-            </ul>
+            <p>
+              Standard ERC-20 transfers never trigger on-chain swaps. The transfer hook (
+              <code>_update</code>) strictly performs balances updates, immediate burn execution, and
+              fee transfers. Slippage, routing, and decentralized exchange (DEX) interactions are
+              handled asynchronously via dedicated functions.
+            </p>
+          </div>
+          <div>
+            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+              2. Deterministic Liquidity Ownership
+            </h4>
+            <p>
+              All liquidity tokens minted via the tax engine are held by the TaxRecipientV3 contract
+              itself with no withdrawal or extraction functions, establishing permanent,
+              protocol-owned liquidity.
+            </p>
+          </div>
+          <div>
+            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+              3. Dual Continuous Reward Streaming
+            </h4>
+            <p>
+              Instead of lump-sum block distributions, staking rewards are streamed continuously over
+              7-day periods, protecting stakers against flash-loan dilution and sandwich attacks.
+            </p>
+          </div>
+          <div>
+            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+              4. Resilient Error Handling
+            </h4>
+            <p>
+              Both native ETH and ERC-20 token distributions employ non-reverting external calls with
+              internal balance state restorations to prevent denial-of-service (DoS) vulnerabilities.
+            </p>
           </div>
         </div>
       </div>
