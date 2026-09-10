@@ -8,7 +8,6 @@ A decentralized finance (DeFi) application for interacting with the NXDv3 Protoc
 - **Protocol Statistics** - View real-time protocol metrics including total burned, staked, and minted tokens
 - **Staking Dashboard** - Monitor and interact with vault staking positions
 - **Interactive Charts** - Visualize epoch burn data, supply breakdown, mint tiers, and vault rewards
-- **Admin Panel** - Protocol administration interface for authorized addresses
 - **Deposit Interface** - Mint NXD tokens through the deposit mechanism
 - **Multi-chain Support** - Works on Optimism and PulseChain networks
 
@@ -82,7 +81,6 @@ npm run test:coverage
 │   │   ├── Header.tsx       # Navigation header
 │   │   ├── Footer.tsx       # Footer with contract addresses
 │   │   ├── ProtocolInfoCard.tsx
-│   │   ├── ProtocolAdmin.tsx
 │   │   ├── ProtocolDeposit.tsx
 │   │   ├── VaultStaking.tsx
 │   │   └── ...              # Chart components

@@ -4,7 +4,6 @@ import { ProtocolProvider } from './context/ProtocolContext';
 import { Header } from './components/Header';
 import { ProtocolDeposit } from './components/ProtocolDeposit';
 import { VaultStaking } from './components/VaultStaking';
-import { ProtocolAdmin } from './components/ProtocolAdmin';
 import { ProtocolStatsWindow } from './components/ProtocolStatsWindow';
 import { ProtocolInfoCard } from './components/ProtocolInfoCard';
 import { Footer } from './components/Footer';
@@ -76,11 +75,6 @@ const MainContent: React.FC = () => {
       </div>
 
       <ProtocolInfoCard
-        protocolAddress={addresses.protocolAddress}
-        nxdAddress={addresses.nxdAddress}
-      />
-
-      <ProtocolAdmin
         protocolAddress={addresses.protocolAddress}
         nxdAddress={addresses.nxdAddress}
       />
