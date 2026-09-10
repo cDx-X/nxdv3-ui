@@ -1,0 +1,132 @@
+/* Charts & Analytics */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 340px;
+}
+
+.epochs-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(540px, 1fr));
+  align-items: stretch;
+  gap: 2rem;
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+.epochs-chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  height: auto;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.epochs-chart-box {
+  margin-top: 3.25rem;
+  height: 300px;
+  min-height: 300px;
+  max-height: 300px;
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.epoch-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .epochs-charts-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    min-width: 0 !important;
+    gap: 1.5rem !important;
+    margin-bottom: 6rem !important;
+  }
+  .epochs-chart-card {
+    padding: 0.85rem !important;
+    gap: 0.75rem !important;
+    height: auto !important;
+    position: relative !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+  .epochs-chart-box {
+    margin-top: 1rem !important;
+    height: 195px !important;
+    min-height: 195px !important;
+    max-height: 195px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    padding-bottom: 0.5rem !important;
+  }
+  .epoch-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.4rem !important;
+  }
+  .supply-chart-container {
+    flex-direction: column !important;
+  }
+  .supply-chart-side {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .epoch-bars-container {
+    min-width: 100% !important;
+    padding-bottom: 24px !important;
+  }
+  .vault-rewards-header {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  .epoch-bar-label {
+    bottom: -18px !important;
+  }
+  .supply-metrics-stack {
+    order: 1 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .supply-chart-doughnut {
+    order: 2 !important;
+  }
+  .supply-metrics-stack .card {
+    padding: 0.5rem 0.75rem !important;
+  }
+  .minting-chart-box {
+    height: 235px !important;
+    min-height: 235px !important;
+    max-height: 235px !important;
+  }
+  .epoch-summary-grid .card {
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+  .epoch-burn-chart-box {
+    height: 245px !important;
+    min-height: 245px !important;
+    max-height: 245px !important;
+  }
+  .epoch-burn-scroll-wrapper {
+    overflow-x: hidden !important;
+    width: 100% !important;
+  }
+  .epoch-burn-chart-box .epoch-bars-container {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+}

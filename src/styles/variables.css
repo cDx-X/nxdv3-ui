@@ -1,0 +1,48 @@
+:root {
+  /* Color Palette - Warm Retro Gold & Deep Midnight DeFi Theme */
+  --bg-primary: #020617;
+  --bg-secondary: #090d1f;
+  --bg-card: rgba(15, 23, 42, 0.88);
+  --bg-card-hover: rgba(30, 41, 59, 0.95);
+  --bg-surface: rgba(30, 41, 59, 0.6);
+  --bg-surface-hover: rgba(51, 65, 85, 0.8);
+
+  --border-color: rgba(245, 158, 11, 0.22);
+  --border-color-light: #f59e0b;
+  --border-glow: rgba(245, 158, 11, 0.25);
+
+  /* Typography Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  /* Accent Colors - Warm Retro Gold & Amber */
+  --accent-blue: #d97706;
+  --accent-blue-hover: #b45309;
+  --accent-blue-light: rgba(217, 119, 6, 0.2);
+
+  --accent-gold: #fbbf24;
+  --accent-gold-hover: #f59e0b;
+  --accent-gold-light: rgba(251, 191, 36, 0.2);
+
+  --accent-success: #34d399;
+  --accent-success-hover: #10b981;
+  --accent-success-light: rgba(52, 211, 153, 0.2);
+
+  --accent-danger: #f87171;
+  --accent-danger-light: rgba(248, 113, 113, 0.2);
+
+  --accent-warning: #fb923c;
+  --accent-warning-light: rgba(251, 146, 60, 0.2);
+
+  --accent-optimism: #ff0420;
+
+  /* Shadows & Blur */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 20px rgba(2, 6, 23, 0.7);
+  --shadow-lg: 0 12px 36px rgba(14, 165, 233, 0.15);
+  --backdrop-blur: blur(20px);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+}

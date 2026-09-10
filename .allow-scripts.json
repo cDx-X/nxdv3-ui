@@ -1,0 +1,6 @@
+{
+  "packages": {
+    "@reown/appkit": true,
+    "esbuild": true
+  }
+}
