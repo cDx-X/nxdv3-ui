@@ -145,6 +145,12 @@ If the wallet connection gets stuck on **"Connecting..."** (especially on a phon
    - releases the button immediately when you tap it while "Connecting..." (acts as Cancel), so the UI never stays
      locked even if AppKit never emits `disconnected` on its own.
 
+6. **No auto-reconnect on page load** — AppKit is created with `enableReconnect: false`, so the app always starts
+   disconnected and waits for the user to tap **Connect Wallet**. The default would try to silently restore the previous
+   session through the WalletConnect relay on startup, which on phone networks often never completes and leaves the
+   button stuck on "Connecting..." right after opening the app. Fresh connections work reliably, so reconnecting costs
+   one tap per visit instead of a stuck state.
+
 ## License
 
 Private - All rights reserved

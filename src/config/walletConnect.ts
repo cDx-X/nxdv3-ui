@@ -43,6 +43,14 @@ export function ensureAppKit() {
         networks: [optimism, pulsechain],
         metadata,
         projectId,
+        // Do NOT silently restore a previous session on page load. With the
+        // default (true), AppKit tries to re-open the stored WalletConnect
+        // session via the relay on startup and sets status to 'connecting'.
+        // On mobile networks the relay WebSocket often never completes, which
+        // leaves the button stuck on "Connecting..." right after the app opens
+        // (the user then has to cancel and reconnect). Fresh connections work
+        // reliably, so start disconnected and let the user tap Connect Wallet.
+        enableReconnect: false,
         features: {
           analytics: false,
           email: false,

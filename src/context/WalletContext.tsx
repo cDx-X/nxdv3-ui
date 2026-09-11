@@ -311,8 +311,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // large AppKit bundle is downloaded, parsed and executed on the main thread.
   // The initial page load stays fast because AppKit is still kept out of the
   // critical path. Once initialized, AppKit is also promoted into state so the
-  // inner provider mounts and AppKit can silently restore a wallet connection
-  // persisted from a previous visit (no modal, no approval prompt needed).
+  // inner provider mounts. Note: `enableReconnect` is disabled in
+  // src/config/walletConnect.ts, so AppKit starts disconnected instead of
+  // trying to silently restore a previous session (which could hang the button
+  // on "Connecting..." over the WalletConnect relay on mobile networks).
   useEffect(() => {
     const t = setTimeout(() => {
       import('@reown/appkit/react')
