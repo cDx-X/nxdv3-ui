@@ -1,13 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ethers } from 'ethers';
-import {
-  RouterController,
-  ChainController,
-  ConnectionController,
-  ConnectorController,
-  ProviderController,
-  StorageUtil
-} from '@reown/appkit-controllers';
+import { RouterController } from '@reown/appkit-controllers';
 import {
   NetworkConfig,
   NETWORKS,
@@ -110,9 +103,11 @@ const WalletProviderInner: React.FC<{
   // `initialDisconnect: true` AppKit only detaches sessions that already have an
   // address — a stuck "connecting" attempt would never be released, which is why
   // both the manual Cancel button and the watchdog below use this helper.
-  // We also directly reset the AppKit controllers (ChainController, ConnectionController,
-  // etc.) because modal.disconnect() alone may not fully clear the WalletConnect session
-  // stored in the wallet — mirroring what AppKit's internal onDisconnectNamespace does.
+  // NOTE: do NOT manually reset AppKit controllers (ChainController, ProviderController,
+  // etc.) on top of this — modal.disconnect({ initialDisconnect: true }) already runs
+  // AppKit's internal onDisconnectNamespace for every namespace, which does the full
+  // cleanup. Additional manual resets break the state AppKit needs to establish a
+  // NEW connection (reconnect after disconnect would silently fail).
   const resetAppKitConnection = useCallback(async () => {
     try {
       const { modal } = await ensureAppKit();
@@ -125,26 +120,6 @@ const WalletProviderInner: React.FC<{
         modal.close();
       } catch {
         // Modal may already be closed — ignore.
-      }
-      // Directly reset AppKit controller state to guarantee the WalletConnect session
-      // is fully cleared (address, network, connection, connector, provider, storage).
-      try {
-        const namespaces = Array.from(ChainController.state.chains.keys());
-        // If no namespaces are registered yet, fall back to the active chain namespace.
-        // After a successful connection AppKit always has an active chain, so this is safe.
-        const fallback = ChainController.state.activeChain ?? 'eip155';
-        const targets = namespaces.length > 0 ? namespaces : [fallback];
-        for (const ns of targets) {
-          ChainController.resetAccount(ns);
-          ChainController.resetNetwork(ns);
-          StorageUtil.removeConnectedNamespace(ns);
-          StorageUtil.addDisconnectedConnectorId(ConnectorController.getConnectorId(ns) || '', ns);
-          ConnectorController.removeConnectorId(ns);
-          ProviderController.resetChain(ns);
-        }
-        ConnectionController.resetWcConnection();
-      } catch (e) {
-        console.error('Error clearing AppKit controller state:', e);
       }
     } catch (e) {
       console.error('Error resetting AppKit connection state:', e);
