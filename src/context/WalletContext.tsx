@@ -45,7 +45,7 @@ const WalletProviderInner: React.FC<{
   initError: string | null;
   children: React.ReactNode;
 }> = ({ appkit, pendingOpen, onOpened, initError, children }) => {
-  const { open } = appkit.useAppKit();
+  const { open, close } = appkit.useAppKit();
   const {
     address: appKitAddress,
     isConnected: appKitIsConnected,
@@ -140,6 +140,37 @@ const WalletProviderInner: React.FC<{
     }, CONNECT_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, [status, setError, resetAppKitConnection]);
+
+  // Close the modal shortly after a successful connection so the built-in
+  // Account View (Fund wallet / Swap / Send / Activity) never stays on top of
+  // the app. AppKit shows that view inside the modal after connecting; the dApp
+  // reflects the connected state via the header, so the modal just needs to go.
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (appKitIsConnected && appKitAddress) {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+      closeTimerRef.current = setTimeout(() => {
+        try {
+          close();
+        } catch {
+          // Ignore — modal may already be closing/closed.
+        }
+      }, 350);
+    } else {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+    }
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+    };
+  }, [appKitIsConnected, appKitAddress, close]);
 
   // If the user clicked "Connect Wallet" before AppKit finished loading, open the
   // modal as soon as the inner provider (with the working hooks) mounts.
