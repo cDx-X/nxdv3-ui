@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ethers } from 'ethers';
+import { RouterController } from '@reown/appkit-controllers';
 import {
   NetworkConfig,
   NETWORKS,
@@ -145,23 +146,25 @@ const WalletProviderInner: React.FC<{
 // Send / Activity) is rendered internally after a successful connection. React
 // state updates (appKitIsConnected) only fire AFTER that view is already shown,
 // so closing via a setState/effect leaves a visible flash. Instead we subscribe
-// to AppKit's raw events synchronously and close the modal the instant
-// CONNECT_SUCCESS fires — before the web component paints the Account View.
+// to AppKit's RouterController synchronously and close the modal the instant the
+// view changes to 'Account' — before the web component paints the Account View.
 useEffect(() => {
     let unsubscribe: (() => void) | undefined;
-    void ensureAppKit().then(({ modal }) => {
-      unsubscribe = modal.subscribeEvents((event: { data?: { event?: string } }) => {
-        if (event.data?.event === 'CONNECT_SUCCESS') {
-          queueMicrotask(() => {
-            try {
-              close();
-            } catch {
-              // Modal may already be closing/closed — ignore.
-            }
-          });
+    try {
+      unsubscribe = RouterController.subscribeKey('view', (view) => {
+        if (view === 'Account') {
+          // Close synchronously inside the subscription callback so the modal
+          // closes before the browser paints the Account View.
+          try {
+            close();
+          } catch {
+            // Modal may already be closing/closed — ignore.
+          }
         }
       });
-    });
+    } catch (e) {
+      console.error('Failed to subscribe to AppKit RouterController:', e);
+    }
     return () => {
       unsubscribe?.();
     };
@@ -197,11 +200,9 @@ useEffect(() => {
     }
   }, [address, chainId]);
 
-  const disconnectWallet = useCallback(() => {
-    // Release the UI immediately, then fully reset AppKit in the background
-    // (with `initialDisconnect: true` so a stuck "connecting" state is dropped).
+  const disconnectWallet = useCallback(async () => {
+    // Release the UI immediately, then fully reset AppKit.
     setConnectionReset(true);
-    void resetAppKitConnection();
     setProvider(null);
     setSigner(null);
     setAddress(null);
@@ -209,6 +210,9 @@ useEffect(() => {
     setError(null);
     setNetworkWarning(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Fully disconnect from AppKit in the background (await so a stuck
+    // "connecting" attempt is properly dropped before any reconnect).
+    await resetAppKitConnection();
   }, [resetAppKitConnection]);
 
   // Sync provider and signer when walletProvider or appKitAddress changes
