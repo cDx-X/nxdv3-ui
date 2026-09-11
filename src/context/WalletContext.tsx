@@ -221,6 +221,21 @@ useEffect(() => {
   }, [address, chainId]);
 
   const disconnectWallet = useCallback(async () => {
+    // Revoke the wallet's eth_accounts permission (EIP-2255) BEFORE AppKit clears
+    // the provider. Without this, injected wallets (Rabby, MetaMask, etc.) remember
+    // the authorization and show "This account is already linked" when the user
+    // tries to reconnect. Revoking makes the wallet "forget" the dApp so a fresh
+    // connection prompt is shown on reconnect.
+    try {
+      if (walletProvider) {
+        await (walletProvider as unknown as Eip1193Provider).request({
+          method: 'wallet_revokePermissions',
+          params: [{ eth_accounts: {} }],
+        });
+      }
+    } catch {
+      // Not all wallets support wallet_revokePermissions — ignore and continue.
+    }
     // Release the UI immediately, then fully reset AppKit.
     setConnectionReset(true);
     setProvider(null);
@@ -233,7 +248,7 @@ useEffect(() => {
     // Fully disconnect from AppKit in the background (await so a stuck
     // "connecting" attempt is properly dropped before any reconnect).
     await resetAppKitConnection();
-  }, [resetAppKitConnection]);
+  }, [resetAppKitConnection, walletProvider]);
 
   // Sync provider and signer when walletProvider or appKitAddress changes
   useEffect(() => {
