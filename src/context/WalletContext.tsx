@@ -59,8 +59,14 @@ const WalletProviderInner: React.FC<{
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<bigint | null>(null);
   const [error, setError] = useState<string | null>(initError);
+  // Local override: while AppKit's internal status can stay stuck on
+  // 'connecting' (e.g. a WalletConnect relay session that never completes on a
+  // mobile network), we still want the UI to return to a usable state after the
+  // user cancels or the watchdog fires. This flag "releases" the button even if
+  // AppKit never emits 'disconnected' on its own.
+  const [connectionReset, setConnectionReset] = useState(false);
 
-  const isConnecting = status === 'connecting';
+  const isConnecting = status === 'connecting' && !connectionReset;
   const isConnected = Boolean(appKitIsConnected && appKitAddress);
 
   // A WalletConnect session can get stuck in the "connecting" state forever
@@ -83,6 +89,36 @@ const WalletProviderInner: React.FC<{
     }
   }, [status]);
 
+  // If AppKit eventually settles on a non-connecting status on its own, release
+  // the local override so the regular status drives the UI again.
+  useEffect(() => {
+    if (status !== 'connecting') {
+      setConnectionReset(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  // Asks AppKit to fully drop any in-progress connection. NOTE: without
+  // `initialDisconnect: true` AppKit only detaches sessions that already have an
+  // address — a stuck "connecting" attempt would never be released, which is why
+  // both the manual Cancel button and the watchdog below use this helper.
+  const resetAppKitConnection = useCallback(async () => {
+    try {
+      const { modal } = await ensureAppKit();
+      await Promise.race([
+        modal.disconnect({ initialDisconnect: true }),
+        new Promise((resolve) => setTimeout(resolve, 3000)),
+      ]);
+      try {
+        modal.close();
+      } catch {
+        // Modal may already be closed — ignore.
+      }
+    } catch (e) {
+      console.error('Error resetting AppKit connection state:', e);
+    }
+  }, []);
+
   useEffect(() => {
     if (status !== 'connecting') {
       return;
@@ -91,19 +127,19 @@ const WalletProviderInner: React.FC<{
       const startedAt = connectingSinceRef.current;
       if (startedAt && Date.now() - startedAt >= CONNECT_TIMEOUT_MS) {
         connectingSinceRef.current = null;
-        try {
-          const { modal } = await ensureAppKit();
-          modal.disconnect();
-        } catch (e) {
-          console.error('Error resetting stuck wallet connection:', e);
-        }
+        await resetAppKitConnection();
+        setConnectionReset(true);
         setError(
-          `Wallet connection timed out. Make sure this domain (${window.location.origin}) is allowlisted in your Reown Cloud project (cloud.reown.com → Project → Configuration → Domain), then tap Connect Wallet again.`
+          `Wallet connection timed out — the WalletConnect session wasn't completed on this device. ` +
+            `On a phone: open this page inside your wallet app's browser (MetaMask, Trust, Rabby) or scan the QR ` +
+            `with your wallet app from a desktop; make sure the network doesn't block wss://relay.walletconnect.org; ` +
+            `and confirm ${window.location.origin} is allowlisted in cloud.reown.com → Configuration → Domain. ` +
+            `Tap Connect Wallet to retry.`
         );
       }
     }, CONNECT_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [status, setError]);
+  }, [status, setError, resetAppKitConnection]);
 
   // If the user clicked "Connect Wallet" before AppKit finished loading, open the
   // modal as soon as the inner provider (with the working hooks) mounts.
@@ -136,11 +172,10 @@ const WalletProviderInner: React.FC<{
   }, [address, chainId]);
 
   const disconnectWallet = useCallback(() => {
-    try {
-      void ensureAppKit().then(({ modal }) => modal.disconnect());
-    } catch (e) {
-      console.error('Error disconnecting appKit:', e);
-    }
+    // Release the UI immediately, then fully reset AppKit in the background
+    // (with `initialDisconnect: true` so a stuck "connecting" state is dropped).
+    setConnectionReset(true);
+    void resetAppKitConnection();
     setProvider(null);
     setSigner(null);
     setAddress(null);
@@ -148,7 +183,7 @@ const WalletProviderInner: React.FC<{
     setError(null);
     setNetworkWarning(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [resetAppKitConnection]);
 
   // Sync provider and signer when walletProvider or appKitAddress changes
   useEffect(() => {
@@ -206,6 +241,7 @@ const WalletProviderInner: React.FC<{
 
   const connectWallet = useCallback(async () => {
     setError(null);
+    setConnectionReset(false);
     try {
       await open();
     } catch (err: unknown) {

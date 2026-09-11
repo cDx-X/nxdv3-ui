@@ -137,10 +137,13 @@ If the wallet connection gets stuck on **"Connecting..."** (especially on a phon
    - the wallet app's built-in browser, or another wallet (Trust Wallet, Rabby, etc.),
    - or scan the app QR from a desktop session.
 
-5. **Stuck state is now self-healing** — since the v1.8.x AppKit only clears the `connecting` status when the
-   WalletConnect relay session completes, the UI used to stay stuck forever. `WalletContext` now contains a
-   watchdog that resets the session after 30 seconds and shows the likely cause (including the exact domain),
-   and the "Connecting..." button doubles as a *Cancel* button.
+5. **Stuck state is now self-healing and cancellable** — since AppKit v1.8.x only clears the `connecting` status when the
+   WalletConnect relay session completes, the UI used to stay stuck forever. `WalletContext` now:
+   - resets the session after 30 seconds (`disconnect({ initialDisconnect: true })` — plain `disconnect()` doesn't clear
+     a stuck "connecting" attempt) and shows the likely causes (open the page in the wallet app's browser / scan the QR
+     from a desktop, `wss://relay.walletconnect.org` being blocked, or the domain not being allowlisted);
+   - releases the button immediately when you tap it while "Connecting..." (acts as Cancel), so the UI never stays
+     locked even if AppKit never emits `disconnected` on its own.
 
 ## License
 
