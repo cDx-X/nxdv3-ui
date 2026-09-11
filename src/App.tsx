@@ -134,9 +134,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.play().catch((err) => {
-        console.warn('Autoplay was prevented:', err);
-      });
+      const playPromise = videoRef.current.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch((err) => {
+          console.warn('Autoplay was prevented:', err);
+        });
+      }
     }
 
     if ('scrollRestoration' in history) {
