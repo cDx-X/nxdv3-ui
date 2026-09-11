@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ethers } from 'ethers';
 import {
   NetworkConfig,
@@ -62,6 +62,48 @@ const WalletProviderInner: React.FC<{
 
   const isConnecting = status === 'connecting';
   const isConnected = Boolean(appKitIsConnected && appKitAddress);
+
+  // A WalletConnect session can get stuck in the "connecting" state forever
+  // (e.g. the relay WebSocket cannot be established on some mobile networks,
+  // or the deployed origin is not allowlisted in the Reown Cloud project).
+  // AppKit only clears this state when the WC relay session completes or
+  // throws, so without a watchdog the "Connect Wallet" button stays disabled
+  // and shows "Connecting..." indefinitely. Watchdog: if the status stays
+  // 'connecting' for too long, reset AppKit so the user can retry, and
+  // surface a hint about the most common causes (incl. the current origin,
+  // which must be allowlisted in cloud.reown.com).
+  const CONNECT_TIMEOUT_MS = 30000;
+  const connectingSinceRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (status === 'connecting' && !connectingSinceRef.current) {
+      connectingSinceRef.current = Date.now();
+    } else if (status !== 'connecting') {
+      connectingSinceRef.current = null;
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== 'connecting') {
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const startedAt = connectingSinceRef.current;
+      if (startedAt && Date.now() - startedAt >= CONNECT_TIMEOUT_MS) {
+        connectingSinceRef.current = null;
+        try {
+          const { modal } = await ensureAppKit();
+          modal.disconnect();
+        } catch (e) {
+          console.error('Error resetting stuck wallet connection:', e);
+        }
+        setError(
+          `Wallet connection timed out. Make sure this domain (${window.location.origin}) is allowlisted in your Reown Cloud project (cloud.reown.com → Project → Configuration → Domain), then tap Connect Wallet again.`
+        );
+      }
+    }, CONNECT_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [status, setError]);
 
   // If the user clicked "Connect Wallet" before AppKit finished loading, open the
   // modal as soon as the inner provider (with the working hooks) mounts.

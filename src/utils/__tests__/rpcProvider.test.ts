@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock ethers before importing
 vi.mock('ethers', () => {
-  const JsonRpcProvider = vi.fn().mockImplementation(() => ({
-    call: vi.fn().mockResolvedValue('0x'),
-  }));
+  const JsonRpcProvider = vi.fn().mockImplementation(function () {
+    return {
+      call: vi.fn().mockResolvedValue('0x'),
+    };
+  });
   const Network = {
     from: vi.fn().mockReturnValue({ chainId: 10, name: 'optimism' }),
   };

@@ -14,6 +14,7 @@ import {
   X,
   Coins,
   QrCode,
+  AlertTriangle,
 } from 'lucide-react';
 import { WebsiteQRCodeModal } from './WebsiteQRCodeModal';
 
@@ -29,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome }) => {
     isConnecting,
     chainId,
     networkConfig,
+    error,
     connectWallet,
     disconnectWallet,
     switchNetwork,
@@ -264,9 +266,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome }) => {
               </button>
             </div>
           ) : (
-            <button className="btn-connect" onClick={connectWallet} disabled={isConnecting}>
+            <button
+              className="btn-connect"
+              onClick={isConnecting ? disconnectWallet : connectWallet}
+              title={isConnecting ? 'Cancel connection' : 'Connect Wallet'}
+            >
               <Wallet size={16} />
-              <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
+              <span>{isConnecting ? 'Connecting... (tap to cancel)' : 'Connect Wallet'}</span>
             </button>
           )}
         </div>
@@ -280,6 +286,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome }) => {
           {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </header>
+
+      {/* Wallet connection error banner (e.g. stuck/blocked connection or init failure) */}
+      {error && (
+        <div
+          className="wallet-error-banner"
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '1rem',
+          }}
+        >
+          <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1 }}>{error}</span>
+        </div>
+      )}
 
       {/* Floating Dropdown Overlay (Escapes header stacking context & backdrop-filter) */}
       {openDropdown && (
@@ -491,14 +514,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome }) => {
               <button
                 className="btn btn-connect full-width"
                 onClick={() => {
-                  connectWallet();
+                  if (isConnecting) {
+                    disconnectWallet();
+                  } else {
+                    connectWallet();
+                  }
                   setIsMobileMenuOpen(false);
                 }}
-                disabled={isConnecting}
               >
                 <Wallet size={16} />
-                <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
+                <span>{isConnecting ? 'Connecting... (tap to cancel)' : 'Connect Wallet'}</span>
               </button>
+            )}
+            {error && (
+              <div className="wallet-error-banner" role="alert" style={{ marginTop: '8px', fontSize: '0.78rem' }}>
+                <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>{error}</span>
+              </div>
             )}
           </div>
 

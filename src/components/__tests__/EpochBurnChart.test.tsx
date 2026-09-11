@@ -21,7 +21,6 @@ vi.mock('lucide-react', () => ({
 }));
 
 import { EpochBurnChart } from '../EpochBurnChart';
-import { multicall } from '../../utils/multicall';
 
 describe('EpochBurnChart', () => {
   beforeEach(() => {

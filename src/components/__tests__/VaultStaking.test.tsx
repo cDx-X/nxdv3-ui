@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 // Mock data
@@ -49,42 +49,40 @@ const mockProtocolContext = {
 };
 
 // Mock contexts before importing components
-vi.mock('../../context/WalletContext', () => {
-  const React = require('react');
-  return {
-    WalletContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
-      Consumer: ({ children }: { children: any }) => children({}),
-    },
-    useWallet: vi.fn(() => mockWalletContext),
-  };
-});
+vi.mock('../../context/WalletContext', () => ({
+  WalletContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+    Consumer: ({ children }: { children: any }) => children({}),
+  },
+  useWallet: vi.fn(() => mockWalletContext),
+}));
 
-vi.mock('../../context/ProtocolContext', () => {
-  const React = require('react');
-  return {
-    ProtocolContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
-      Consumer: ({ children }: { children: any }) => children({}),
-    },
-    useProtocol: vi.fn(() => mockProtocolContext),
-  };
-});
+vi.mock('../../context/ProtocolContext', () => ({
+  ProtocolContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+    Consumer: ({ children }: { children: any }) => children({}),
+  },
+  useProtocol: vi.fn(() => mockProtocolContext),
+}));
 
 // Mock ethers
 vi.mock('ethers', () => {
-  const Interface = vi.fn().mockImplementation(() => ({
-    encodeFunctionData: vi.fn().mockReturnValue('0x'),
-    decodeFunctionResult: vi.fn().mockReturnValue([100n]),
-  }));
+  const Interface = vi.fn().mockImplementation(function () {
+    return {
+      encodeFunctionData: vi.fn().mockReturnValue('0x'),
+      decodeFunctionResult: vi.fn().mockReturnValue([100n]),
+    };
+  });
   
   return {
     ethers: {
-      Contract: vi.fn().mockImplementation(() => ({
-        deposit: vi.fn().mockResolvedValue({ hash: '0x123' }),
-        withdraw: vi.fn().mockResolvedValue({ hash: '0x123' }),
-        approve: vi.fn().mockResolvedValue({ hash: '0x123' }),
-      })),
+      Contract: vi.fn().mockImplementation(function () {
+        return {
+          deposit: vi.fn().mockResolvedValue({ hash: '0x123' }),
+          withdraw: vi.fn().mockResolvedValue({ hash: '0x123' }),
+          approve: vi.fn().mockResolvedValue({ hash: '0x123' }),
+        };
+      }),
       BrowserProvider: vi.fn(),
       isAddress: vi.fn(() => true),
       parseEther: vi.fn((v) => BigInt(v) * 10n ** 18n),
@@ -168,6 +166,6 @@ describe('VaultStaking', () => {
       })
     );
 
-    expect(screen.getByText('Claim Rewards')).toBeInTheDocument();
+    expect(screen.getAllByText(/Claim All|Claim ETH|Claim XEN/).length).toBeGreaterThan(0);
   });
 });

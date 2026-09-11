@@ -1,25 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { multicall, MulticallCall } from '../multicall';
-import { executeWithRpcFailover, deduplicateRequest } from '../rpcProvider';
+import { executeWithRpcFailover } from '../rpcProvider';
 
 // Mock rpcProvider
 vi.mock('../rpcProvider', () => ({
   executeWithRpcFailover: vi.fn(),
-  deduplicateRequest: vi.fn((key, fn) => fn()),
+  deduplicateRequest: vi.fn((_key, fn) => fn()),
 }));
 
 // Mock ethers Interface
 vi.mock('ethers', () => {
-  const Interface = vi.fn().mockImplementation(() => ({
-    encodeFunctionData: vi.fn().mockReturnValue('0x1234'),
-    decodeFunctionResult: vi.fn().mockImplementation((method, data) => {
-      if (method === 'aggregate3') {
-        // Return the data as-is for processing
-        return [[{ success: true, returnData: data }]];
-      }
-      return [data];
-    }),
-  }));
+  const Interface = vi.fn().mockImplementation(function () {
+    return {
+      encodeFunctionData: vi.fn().mockReturnValue('0x1234'),
+      decodeFunctionResult: vi.fn().mockImplementation((method, data) => {
+        if (method === 'aggregate3') {
+          // Return the data as-is for processing
+          return [[{ success: true, returnData: data }]];
+        }
+        return [data];
+      }),
+    };
+  });
   
   return {
     ethers: {

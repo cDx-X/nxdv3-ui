@@ -3,15 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
 // Mock contexts
-vi.mock('../../context/WalletContext', () => {
-  const React = require('react');
-  return {
-    WalletContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
-    },
-    useWallet: vi.fn(),
-  };
-});
+vi.mock('../../context/WalletContext', () => ({
+  WalletContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+  useWallet: vi.fn(),
+}));
 
 // Mock lucide-react
 vi.mock('lucide-react', () => ({
@@ -27,6 +24,7 @@ vi.mock('lucide-react', () => ({
   X: () => React.createElement('span', null, 'X'),
   Coins: () => React.createElement('span', null, 'Coins'),
   QrCode: () => React.createElement('span', null, 'QrCode'),
+  AlertTriangle: () => React.createElement('span', null, 'AlertTriangle'),
 }));
 
 // Mock config

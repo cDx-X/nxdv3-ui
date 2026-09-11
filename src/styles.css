@@ -854,6 +854,21 @@ body {
   background-color: rgba(239, 68, 68, 0.25);
 }
 
+.wallet-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--accent-danger, #ef4444);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
 .hero-section {
   text-align: center;
   margin-bottom: 2rem;

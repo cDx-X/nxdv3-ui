@@ -2,38 +2,36 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import React from 'react';
 
-vi.mock('../../context/WalletContext', () => {
-  const React = require('react');
-  return {
-    WalletContext: { Provider: ({ children }: { children: React.ReactNode }) => children },
-    useWallet: vi.fn(),
-  };
-});
+vi.mock('../../context/WalletContext', () => ({
+  WalletContext: { Provider: ({ children }: { children: React.ReactNode }) => children },
+  useWallet: vi.fn(),
+}));
 
-vi.mock('../../context/ProtocolContext', () => {
-  const React = require('react');
-  return {
-    ProtocolContext: { Provider: ({ children }: { children: React.ReactNode }) => children },
-    useProtocol: vi.fn(),
-  };
-});
+vi.mock('../../context/ProtocolContext', () => ({
+  ProtocolContext: { Provider: ({ children }: { children: React.ReactNode }) => children },
+  useProtocol: vi.fn(),
+}));
 
 const mockDeposit = vi.fn().mockResolvedValue({ hash: '0xdeposit123' });
 const mockApprove = vi.fn().mockResolvedValue({ hash: '0xapprove123' });
 const mockWait = vi.fn().mockResolvedValue({ status: 1 });
 
 vi.mock('ethers', () => {
-  const Interface = vi.fn().mockImplementation(() => ({
-    encodeFunctionData: vi.fn().mockReturnValue('0x'),
-    decodeFunctionResult: vi.fn().mockReturnValue([100n]),
-  }));
+  const Interface = vi.fn().mockImplementation(function () {
+    return {
+      encodeFunctionData: vi.fn().mockReturnValue('0x'),
+      decodeFunctionResult: vi.fn().mockReturnValue([100n]),
+    };
+  });
 
   return {
     ethers: {
-      Contract: vi.fn().mockImplementation(() => ({
-        deposit: mockDeposit,
-        approve: mockApprove,
-      })),
+      Contract: vi.fn().mockImplementation(function () {
+        return {
+          deposit: mockDeposit,
+          approve: mockApprove,
+        };
+      }),
       isAddress: vi.fn(() => true),
       parseEther: vi.fn((v: string) => BigInt(parseFloat(v) * 1e18)),
       formatEther: vi.fn((v: bigint) => (Number(v) / 1e18).toString()),

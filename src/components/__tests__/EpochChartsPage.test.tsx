@@ -3,9 +3,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 // Mock contexts before importing components
-vi.mock('../../context/ProtocolContext', () => {
-  const React = require('react');
-  return {
+vi.mock('../../context/ProtocolContext', () => ({
     ProtocolContext: {
       Provider: ({ children }: { children: React.ReactNode }) => children,
     },
@@ -35,27 +33,25 @@ vi.mock('../../context/ProtocolContext', () => {
       refreshAll: vi.fn(),
       isLoadingGlobal: false,
     })),
-  };
-});
+}));
 
-vi.mock('../../context/WalletContext', () => {
-  const React = require('react');
-  return {
+vi.mock('../../context/WalletContext', () => ({
     WalletContext: {
       Provider: ({ children }: { children: React.ReactNode }) => children,
     },
     useWallet: vi.fn(() => ({
       isConnected: true,
     })),
-  };
-});
+  }));
 
 // Mock ethers
 vi.mock('ethers', () => {
-  const Interface = vi.fn().mockImplementation(() => ({
-    encodeFunctionData: vi.fn().mockReturnValue('0x'),
-    decodeFunctionResult: vi.fn().mockReturnValue([100n]),
-  }));
+  const Interface = vi.fn().mockImplementation(function () {
+    return {
+      encodeFunctionData: vi.fn().mockReturnValue('0x'),
+      decodeFunctionResult: vi.fn().mockReturnValue([100n]),
+    };
+  });
   
   return {
     ethers: {

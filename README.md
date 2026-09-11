@@ -112,6 +112,36 @@ This project is configured for deployment on Vercel. The `vercel.json` includes 
 3. Build command: `npm run build`
 4. Output directory: `dist`
 
+### Production checklist (wallet connection)
+
+If the wallet connection gets stuck on **"Connecting..."** (especially on a phone after deploying), check these in order:
+
+1. **Set the Reown (WalletConnect) Project ID in Vercel** — `.env` is gitignored, so the value is **not** committed. Add it under
+   Vercel → Project → Settings → Environment Variables and redeploy:
+   - Name: `VITE_WALLETCONNECT_PROJECT_ID`
+   - Value: your Project ID from https://cloud.reown.com (the same one used locally)
+
+2. **Allowlist your production domain in Reown Cloud** — the most common cause of an infinite "Connecting..." state.
+   Connections are only accepted from origins registered in the project:
+   - Open https://cloud.reown.com → your project → **Configuration** tab
+   - In the **Domain** section click **+ Domain**, enter the exact deployed origin
+     (e.g. `https://your-app.vercel.app` and/or the custom domain), click **Allowlist**
+   - Propagation can take up to 5 minutes, then hard-refresh the app (clear the browser cache on the phone)
+   - The app already reports its real origin (`window.location.origin`) to Reown, so no code change is needed per domain.
+
+3. **Check the CSP headers** — `index.html` and `vercel.json` must stay in sync. Both already allow the WalletConnect
+   relay (`wss://*.walletconnect.org`, `wss://*.walletconnect.com`) and now also `https://verify.walletconnect.com`.
+
+4. **Known MetaMask mobile issue** — as of Aug 2026, a MetaMask mobile wallet update breaks validation of valid apps
+   (per Reown docs). If you use MetaMask on the phone and see "Connecting..." forever, try:
+   - the wallet app's built-in browser, or another wallet (Trust Wallet, Rabby, etc.),
+   - or scan the app QR from a desktop session.
+
+5. **Stuck state is now self-healing** — since the v1.8.x AppKit only clears the `connecting` status when the
+   WalletConnect relay session completes, the UI used to stay stuck forever. `WalletContext` now contains a
+   watchdog that resets the session after 30 seconds and shows the likely cause (including the exact domain),
+   and the "Connecting..." button doubles as a *Cancel* button.
+
 ## License
 
 Private - All rights reserved

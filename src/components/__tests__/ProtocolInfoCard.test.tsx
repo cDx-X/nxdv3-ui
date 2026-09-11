@@ -3,15 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
 // Mock contexts
-vi.mock('../../context/ProtocolContext', () => {
-  const React = require('react');
-  return {
-    ProtocolContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
-    },
-    useProtocol: vi.fn(),
-  };
-});
+vi.mock('../../context/ProtocolContext', () => ({
+  ProtocolContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+  useProtocol: vi.fn(),
+}));
 
 // Mock lucide-react
 vi.mock('lucide-react', () => ({

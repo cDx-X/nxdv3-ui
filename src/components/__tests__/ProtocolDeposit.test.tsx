@@ -1,27 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 // Mock contexts
-vi.mock('../../context/WalletContext', () => {
-  const React = require('react');
-  return {
-    WalletContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
-    },
-    useWallet: vi.fn(),
-  };
-});
+vi.mock('../../context/WalletContext', () => ({
+  WalletContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+  useWallet: vi.fn(),
+}));
 
-vi.mock('../../context/ProtocolContext', () => {
-  const React = require('react');
-  return {
-    ProtocolContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
-    },
-    useProtocol: vi.fn(),
-  };
-});
+vi.mock('../../context/ProtocolContext', () => ({
+  ProtocolContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+  useProtocol: vi.fn(),
+}));
 
 // Mock ethers
 vi.mock('ethers', () => {
