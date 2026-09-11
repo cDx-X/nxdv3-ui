@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ethers } from 'ethers';
-import { RouterController } from '@reown/appkit-controllers';
+import { RouterController, ChainController } from '@reown/appkit-controllers';
 import {
   NetworkConfig,
   NETWORKS,
@@ -103,11 +103,14 @@ const WalletProviderInner: React.FC<{
   // `initialDisconnect: true` AppKit only detaches sessions that already have an
   // address — a stuck "connecting" attempt would never be released, which is why
   // both the manual Cancel button and the watchdog below use this helper.
-  // NOTE: do NOT manually reset AppKit controllers (ChainController, ProviderController,
-  // etc.) on top of this — modal.disconnect({ initialDisconnect: true }) already runs
-  // AppKit's internal onDisconnectNamespace for every namespace, which does the full
-  // cleanup. Additional manual resets break the state AppKit needs to establish a
-  // NEW connection (reconnect after disconnect would silently fail).
+  //
+  // IMPORTANT: after modal.disconnect() we ALSO call ChainController.resetAccount().
+  // In AppKit 1.8.x modal.disconnect() does not reliably propagate the account-state
+  // change to React hooks (appKitIsConnected / appKitAddress stay set), so Deposit /
+  // Staking still render as "connected" even though the header button already shows
+  // "Connect Wallet". Resetting ONLY the account state fixes that, while leaving
+  // network/provider/connector state untouched — those are needed to establish a
+  // NEW connection (previous attempt to reset all controllers broke reconnection).
   const resetAppKitConnection = useCallback(async () => {
     try {
       const { modal } = await ensureAppKit();
@@ -120,6 +123,17 @@ const WalletProviderInner: React.FC<{
         modal.close();
       } catch {
         // Modal may already be closed — ignore.
+      }
+      // Force-clear the ACCOUNT state if modal.disconnect() didn't propagate.
+      // This clears appKitIsConnected / appKitAddress (Deposit/Staking go back to
+      // "connect your wallet") WITHOUT touching network/provider/connector state
+      // that AppKit needs for a fresh reconnection.
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const namespace: any = ChainController.state.activeChain ?? 'eip155';
+        ChainController.resetAccount(namespace);
+      } catch (e) {
+        console.error('Error clearing AppKit account state:', e);
       }
     } catch (e) {
       console.error('Error resetting AppKit connection state:', e);
