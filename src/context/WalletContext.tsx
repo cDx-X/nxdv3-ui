@@ -371,13 +371,28 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [initError, setInitError] = useState<string | null>(null);
   const [pendingOpen, setPendingOpen] = useState(false);
 
-  // AppKit is intentionally NOT preloaded on startup. Loading the large
-  // AppKit/WalletConnect bundle shortly after the page loads spikes memory on
-  // mobile devices, which can trigger the browser to automatically reload the tab
-  // ("after a moment"). Instead AppKit is loaded lazily on first Connect click
-  // (see loadAppKit / fallbackConnect below), keeping the initial load light.
-  // Trade-off: the first connect takes a moment longer to open the modal, but the
-  // page no longer reloads itself on phones.
+  // Preload AppKit ONLY on desktop (viewport > 900 px matches the app's mobile
+  // breakpoint). On desktop there is plenty of memory, so preloading lets
+  // `enableReconnect` silently restore the previous wallet session right after
+  // page load — the user sees the connected state WITHOUT re-authorizing.
+  // On mobile, AppKit stays lazy-loaded (on first Connect click): loading the
+  // large WalletConnect bundle shortly after page load spikes memory on phones,
+  // which triggers the browser to auto-reload the tab. Mobile users tap
+  // Connect Wallet once and the stored session is restored instantly (no
+  // re-authorization needed).
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth <= 900) {
+      return;
+    }
+    const t = setTimeout(() => {
+      import('@reown/appkit/react')
+        .then((mod) => ensureAppKit().then(() => setAppkit(mod)))
+        .catch(() => {
+          // Ignore — AppKit will be loaded on demand if the preload fails.
+        });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   // Dynamically load + initialize AppKit (idempotent).
   const loadAppKit = useCallback(
