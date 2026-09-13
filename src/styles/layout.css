@@ -374,7 +374,9 @@
 .footer-address-pill {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  min-width: 176px;
+  box-sizing: border-box;
   background-color: rgba(7, 10, 16, 0.7);
   border: 1px solid var(--border-color);
   padding: 5px 10px;
@@ -383,6 +385,7 @@
   font-family: monospace;
   color: var(--text-secondary);
   gap: 6px;
+  white-space: nowrap;
 }
 
 .footer-icon-btn {
@@ -549,5 +552,6 @@
   .footer-address-pill {
     width: 100%;
     box-sizing: border-box;
+    justify-content: space-between;
   }
 }

@@ -642,6 +642,9 @@ body {
 .footer-address-pill {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 176px;
+  box-sizing: border-box;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -650,6 +653,15 @@ body {
   color: var(--text-primary);
   font-family: monospace;
   font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* Keep all address pills the same fixed width on desktop */
+@media (max-width: 480px) {
+  .footer-address-pill {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .footer-icon-btn {
