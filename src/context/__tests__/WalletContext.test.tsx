@@ -25,7 +25,7 @@ describe('WalletContext', () => {
       const config = getNetworkConfig(10);
       expect(config.name).toBe('Optimism');
       expect(config.chainId).toBe(10);
-      expect(config.addresses.protocolAddress).toBe('0x8C6f6ec2281D5678844556887DEDa5cEC907De87');
+      expect(config.addresses.protocolAddress).toBe('0x9a781f3313635047EAfc0BeD3699721bc077161A');
     });
 
     it('returns PulseChain for chainId 369', () => {

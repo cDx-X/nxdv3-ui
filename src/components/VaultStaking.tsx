@@ -295,7 +295,7 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
       }
     };
 
-    const handleEmergencyWithdraw = async () => {
+    /* const handleEmergencyWithdraw = async () => {
       if (!signer || !effectiveVaultAddress) return;
       if (
         !window.confirm(
@@ -321,7 +321,7 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
       } finally {
         setIsLoading(false);
       }
-    };
+    }; */
 
     const needsApproval = parseFloat(vaultData.nxdAllowance) < parseFloat(stakeAmount || '0');
     const now = Math.floor(Date.now() / 1000);
