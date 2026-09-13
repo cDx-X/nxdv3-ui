@@ -194,7 +194,7 @@ export const Footer: React.FC = () => {
                 </svg>
               </a>*/}
               <a
-                href="https://t.me/NXDv3"
+                href="https://t.me/DBXenV2"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="footer-social-btn"
