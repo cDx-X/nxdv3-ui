@@ -167,7 +167,7 @@ export const SupplyBarChart: React.FC<{
 
         {/* Right: Vertical Metric Stack */}
         <div
-          className="flex flex-col gap-1 supply-chart-side supply-metrics-stack"
+          className="flex flex-col gap-2 supply-chart-side supply-metrics-stack"
           style={{ flex: '1 1 200px', minWidth: '200px', maxWidth: '260px' }}
         >
           <div className="card px-3 py-1 flex flex-col">
