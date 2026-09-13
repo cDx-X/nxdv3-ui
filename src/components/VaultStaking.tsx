@@ -726,7 +726,7 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
                 </button>
               </div>
 
-              <button
+             {/*<button
                 type="button"
                 className="btn full-width"
                 style={
@@ -771,7 +771,7 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
                 {isLoading
                   ? 'Processing...'
                   : `Emergency Withdraw (${vaultData.emergencyWithdrawEnabled ? 'active' : 'inactive'})`}
-              </button>
+              </button>*/}
             </div>
           </div>
         )}
