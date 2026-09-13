@@ -13,7 +13,6 @@ vi.mock('../../config/walletConnect', () => ({
     optimism: { id: 10, name: 'Optimism' },
     pulsechain: { id: 369, name: 'PulseChain' },
   }),
-  preloadReownFont: vi.fn(),
 }));
 
 describe('WalletContext', () => {

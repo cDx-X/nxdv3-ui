@@ -7,7 +7,7 @@ import {
   getNetworkConfig,
   hasConfiguredAddresses,
 } from '../config/networks';
-import { ensureAppKit, preloadReownFont } from '../config/walletConnect';
+import { ensureAppKit } from '../config/walletConnect';
 
 // Type of the dynamically imported AppKit React module (loaded lazily).
 // Type for EIP-1193 provider (standard used by ethers.js)
@@ -48,16 +48,6 @@ const WalletProviderInner: React.FC<{
 }> = ({ appkit, pendingOpen, onOpened, initError, children }) => {
   const { open, close } = appkit.useAppKit();
 
-  // KHTeka (Reown/AppKit's UI font) is only used once the wallet modal renders,
-  // so we preload it just-in-time, right before the modal opens. This keeps the
-  // font ready for the first modal paint WITHOUT a static <link rel="preload">
-  // in index.html, which caused a "preloaded using link preload but not used"
-  // console warning on every page load (the font was fetched but stayed unused
-  // until the user opened the wallet modal).
-  const openModal = useCallback(async () => {
-    preloadReownFont();
-    await open();
-  }, [open]);
 
   const {
     address: appKitAddress,
@@ -108,7 +98,6 @@ const WalletProviderInner: React.FC<{
     if (status !== 'connecting') {
       setConnectionReset(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   // Asks AppKit to fully drop any in-progress connection. NOTE: without
@@ -206,11 +195,11 @@ useEffect(() => {
   // modal as soon as the inner provider (with the working hooks) mounts.
   useEffect(() => {
     if (pendingOpen) {
-      openModal();
+      open();
       onOpened();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingOpen, openModal]);
+  }, [pendingOpen, open]);
 
   const networkConfig = useMemo(() => getNetworkConfig(chainId), [chainId]);
   const hasAddresses = useMemo(() => hasConfiguredAddresses(networkConfig), [networkConfig]);
@@ -320,12 +309,12 @@ useEffect(() => {
     setError(null);
     setConnectionReset(false);
     try {
-      await openModal();
+      await open();
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
       setError(errorObj?.message || 'Failed to open connection modal.');
     }
-  }, [openModal]);
+  }, [open]);
 
   const switchNetwork = useCallback(
     async (targetChainId: number) => {

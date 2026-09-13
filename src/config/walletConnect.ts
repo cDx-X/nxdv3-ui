@@ -2,7 +2,8 @@
 // Lazy AppKit (Reown / WalletConnect) initialization.
 //
 // AppKit is NOT loaded or initialized at module load time. It is only loaded
-// dynamically (via `import()`) the first time the user clicks "Connect Wallet".
+// dynamically (via `import()`) the first time the user clicks "Connect Wallet"
+// (or after a 1.5s delay on desktop).
 // This keeps ~2-4 MB of AppKit/WalletConnect code out of the critical path of
 // the initial page load, so the app becomes interactive much faster.
 
@@ -11,33 +12,6 @@ let appKitPromise: Promise<{
   optimism: any;
   pulsechain: any;
 }> | null = null;
-
-// Reown/AppKit's wallet modal renders its UI with the 'KHTeka' font hosted on
-// fonts.reown.com. That font is only used once the modal actually renders, so we
-// do NOT preload it statically in index.html — a static <link rel="preload">
-// fetched the font on every page load but left it unused for several seconds,
-// which made the browser log: "The resource ... was preloaded using link preload
-// but not used within a few seconds from the window's load event."
-//
-// Instead we preload it just-in-time, right before the modal opens (see
-// WalletContext). The font is then fetched only when it will actually be used,
-// so the warning never fires and the first modal paint still has the font ready.
-const REOWN_FONT_URL = 'https://fonts.reown.com/KHTeka-Medium.woff2';
-let reownFontPreloaded = false;
-
-export function preloadReownFont() {
-  if (reownFontPreloaded || typeof document === 'undefined') {
-    return;
-  }
-  reownFontPreloaded = true;
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.href = REOWN_FONT_URL;
-  link.as = 'font';
-  link.type = 'font/woff2';
-  link.crossOrigin = 'anonymous';
-  document.head.appendChild(link);
-}
 
 export function ensureAppKit() {
   if (!appKitPromise) {
@@ -81,6 +55,20 @@ export function ensureAppKit() {
           analytics: false,
           email: false,
           socials: false,
+        },
+        // By default, Reown's ThemeUtil injects <link rel="preload"> tags for 8
+        // KHTeka font variants hosted on fonts.reown.com (including KHTeka-Medium.woff2).
+        // Because Reown's CSS does not define an @font-face for KHTeka-Medium, and
+        // the modal is not open at window load time, Chromium logs:
+        // "The resource https://fonts.reown.com/KHTeka-Medium.woff2 was preloaded
+        // using link preload but not used within a few seconds from the window's load event."
+        //
+        // Providing custom font-family themeVariables sets `hasCustomFont = true`
+        // in Reown's ThemeUtil, which skips the entire KHTeka font preload loop and
+        // renders the wallet modal with the application's native Inter font.
+        themeVariables: {
+          '--w3m-font-family': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          '--apkt-font-family': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         },
       });
 

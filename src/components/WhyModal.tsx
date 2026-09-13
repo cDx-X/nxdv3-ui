@@ -9,7 +9,7 @@ interface WhyModalProps {
   onClose: () => void;
 }
 
-const markdownContent = `﻿# Comprehensive Technical Audit & Comparison Report: NXD (v2) vs. NXDv3
+const markdownContent = `# Comprehensive Technical Audit & Comparison Report: NXD (v2) vs. NXDv3
 
 This document provides a complete architectural, cryptographic, economic, and security comparison between the legacy NXD (v2) protocol and the optimized NXDv3 smart contract suite.
 
