@@ -12,6 +12,33 @@ let appKitPromise: Promise<{
   pulsechain: any;
 }> | null = null;
 
+// Reown/AppKit's wallet modal renders its UI with the 'KHTeka' font hosted on
+// fonts.reown.com. That font is only used once the modal actually renders, so we
+// do NOT preload it statically in index.html — a static <link rel="preload">
+// fetched the font on every page load but left it unused for several seconds,
+// which made the browser log: "The resource ... was preloaded using link preload
+// but not used within a few seconds from the window's load event."
+//
+// Instead we preload it just-in-time, right before the modal opens (see
+// WalletContext). The font is then fetched only when it will actually be used,
+// so the warning never fires and the first modal paint still has the font ready.
+const REOWN_FONT_URL = 'https://fonts.reown.com/KHTeka-Medium.woff2';
+let reownFontPreloaded = false;
+
+export function preloadReownFont() {
+  if (reownFontPreloaded || typeof document === 'undefined') {
+    return;
+  }
+  reownFontPreloaded = true;
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.href = REOWN_FONT_URL;
+  link.as = 'font';
+  link.type = 'font/woff2';
+  link.crossOrigin = 'anonymous';
+  document.head.appendChild(link);
+}
+
 export function ensureAppKit() {
   if (!appKitPromise) {
     appKitPromise = (async () => {
