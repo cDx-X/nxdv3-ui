@@ -305,6 +305,9 @@ export const ProtocolProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ];
 
       const gRes = await multicall(globalCalls);
+      if (!gRes || !Array.isArray(gRes)) {
+        return;
+      }
 
       const totalNXDBurned = gRes[2]?.success
         ? BigInt(gRes[2].result || 0)
@@ -462,6 +465,9 @@ export const ProtocolProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ];
 
         const uRes = await multicall(userCalls);
+        if (!uRes || !Array.isArray(uRes)) {
+          return;
+        }
 
         const userInfo = uRes[4]?.success ? uRes[4].result : null;
         const cooldown = uRes[7]?.success ? uRes[7].result : null;

@@ -1,0 +1,319 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import React from 'react';
+
+vi.mock('../../context/WalletContext', () => ({
+  WalletContext: { Provider: ({ children }: { children: React.ReactNode }) => children },
+  useWallet: vi.fn(),
+}));
+
+vi.mock('../../context/ProtocolContext', () => ({
+  ProtocolContext: { Provider: ({ children }: { children: React.ReactNode }) => children },
+  useProtocol: vi.fn(),
+}));
+
+const mockDeposit = vi.fn().mockResolvedValue({ hash: '0xdeposit123' });
+const mockWithdraw = vi.fn().mockResolvedValue({ hash: '0xwithdraw123' });
+const mockApprove = vi.fn().mockResolvedValue({ hash: '0xapprove123' });
+const mockInitiateCooldown = vi.fn().mockResolvedValue({ hash: '0xcooldown123' });
+const mockWithdrawCooldown = vi.fn().mockResolvedValue({ hash: '0xwithdraw123' });
+const mockClaimRewards = vi.fn().mockResolvedValue({ hash: '0xclaim123' });
+const mockClaimETH = vi.fn().mockResolvedValue({ hash: '0xclaimETH123' });
+const mockClaimXEN = vi.fn().mockResolvedValue({ hash: '0xclaimXEN123' });
+const mockWait = vi.fn().mockResolvedValue({ status: 1 });
+
+vi.mock('ethers', () => {
+  const Interface = vi.fn().mockImplementation(function () {
+    return {
+      encodeFunctionData: vi.fn().mockReturnValue('0x'),
+      decodeFunctionResult: vi.fn().mockReturnValue([100n]),
+    };
+  });
+
+  return {
+    ethers: {
+      Contract: vi.fn().mockImplementation(function () {
+        return {
+          deposit: mockDeposit,
+          withdraw: mockWithdraw,
+          approve: mockApprove,
+          initiateCooldown: mockInitiateCooldown,
+          withdrawCooldown: mockWithdrawCooldown,
+          claimRewards: mockClaimRewards,
+          claimETH: mockClaimETH,
+          claimXEN: mockClaimXEN,
+        };
+      }),
+      isAddress: vi.fn(() => true),
+      parseEther: vi.fn((v: string) => BigInt(parseFloat(v) * 1e18)),
+      formatEther: vi.fn((v: bigint) => (Number(v) / 1e18).toString()),
+      MaxUint256: 115792089237316195423570985008687907853269984665640564039457584007913129639935n,
+      Interface,
+    },
+  };
+});
+
+import { VaultStaking } from '../VaultStaking';
+import { useWallet } from '../../context/WalletContext';
+import { useProtocol } from '../../context/ProtocolContext';
+
+const mockWalletContext = {
+  isConnected: true,
+  address: '0x1234567890123456789012345678901234567890',
+  signer: { getAddress: vi.fn().mockResolvedValue('0x1234567890123456789012345678901234567890') },
+  networkConfig: {
+    chainId: 10,
+    name: 'Optimism',
+    addresses: {
+      vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+      nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+    },
+  },
+  networkWarning: null,
+  switchNetwork: vi.fn(),
+  connectWallet: vi.fn(),
+  disconnectWallet: vi.fn(),
+  error: null,
+  initError: null,
+};
+
+const mockProtocolContext = {
+  globalData: {
+    isLoaded: true,
+    totalVaultStaked: 10000000000000000000000n,
+  },
+  userData: {
+    isLoaded: true,
+    nxdBalance: 500000000000000000000n,
+    nxdAllowance: 0n,
+    stakedBalance: 100000000000000000000n,
+    pendingETH: 50000000000000000n,
+    pendingXEN: 1000000000000000000000n,
+    cooldownRequest: null as { amount: bigint; releaseTime: number } | null,
+  },
+  refreshAll: vi.fn(),
+  refreshGlobal: vi.fn(),
+  refreshUser: vi.fn(),
+  isLoadingGlobal: false,
+  setIsLoadingGlobal: vi.fn(),
+};
+
+describe('VaultStaking Transactions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (useWallet as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockWalletContext);
+    (useProtocol as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockProtocolContext);
+    mockDeposit.mockResolvedValue({ hash: '0xdeposit123', wait: mockWait });
+    mockWithdraw.mockResolvedValue({ hash: '0xwithdraw123', wait: mockWait });
+    mockApprove.mockResolvedValue({ hash: '0xapprove123', wait: mockWait });
+    mockInitiateCooldown.mockResolvedValue({ hash: '0xcooldown123', wait: mockWait });
+    mockWithdrawCooldown.mockResolvedValue({ hash: '0xwithdraw123', wait: mockWait });
+    mockClaimRewards.mockResolvedValue({ hash: '0xclaim123', wait: mockWait });
+    mockClaimETH.mockResolvedValue({ hash: '0xclaimETH123', wait: mockWait });
+    mockClaimXEN.mockResolvedValue({ hash: '0xclaimXEN123', wait: mockWait });
+    mockWait.mockResolvedValue({ status: 1 });
+  });
+
+  it('should call approve when authorize button is clicked with entered amount', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const input = screen.getByPlaceholderText('0.0 NXDv3');
+    fireEvent.change(input, { target: { value: '50' } });
+
+    const authorizeButton = screen.getByText(/Authorize NXDv3 for Vault/i);
+
+    await act(async () => {
+      fireEvent.click(authorizeButton);
+    });
+
+    expect(mockApprove).toHaveBeenCalled();
+  });
+
+  it('should call stake when stake button is clicked with valid amount and allowance', async () => {
+    (useProtocol as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...mockProtocolContext,
+      userData: {
+        ...mockProtocolContext.userData,
+        nxdAllowance: 10000000000000000000000n,
+      },
+    });
+
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const input = screen.getByPlaceholderText('0.0 NXDv3');
+    fireEvent.change(input, { target: { value: '50' } });
+
+    const stakeButton = screen.getByText('Stake NXDv3');
+
+    await act(async () => {
+      fireEvent.click(stakeButton);
+    });
+
+    expect(mockDeposit).toHaveBeenCalled();
+  });
+
+  it('should handle stake transaction rejection gracefully', async () => {
+    mockDeposit.mockRejectedValueOnce(new Error('User rejected the transaction'));
+    (useProtocol as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...mockProtocolContext,
+      userData: {
+        ...mockProtocolContext.userData,
+        nxdAllowance: 10000000000000000000000n,
+      },
+    });
+
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const input = screen.getByPlaceholderText('0.0 NXDv3');
+    fireEvent.change(input, { target: { value: '50' } });
+
+    const stakeButton = screen.getByText('Stake NXDv3');
+
+    await act(async () => {
+      fireEvent.click(stakeButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/rejected|error|failed/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should call claimRewards when claim all rewards button is clicked', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const claimAllButton = screen.getByText('Claim All');
+
+    await act(async () => {
+      fireEvent.click(claimAllButton);
+    });
+
+    expect(mockClaimRewards).toHaveBeenCalled();
+  });
+
+  it('should call claimETH when claim ETH button is clicked', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const claimEthButton = screen.getByText('Claim ETH');
+
+    await act(async () => {
+      fireEvent.click(claimEthButton);
+    });
+
+    expect(mockClaimETH).toHaveBeenCalled();
+  });
+
+  it('should call claimXEN when claim XEN button is clicked', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const claimXenButton = screen.getByText('Claim XEN');
+
+    await act(async () => {
+      fireEvent.click(claimXenButton);
+    });
+
+    expect(mockClaimXEN).toHaveBeenCalled();
+  });
+
+  it('should show withdrawCooldown button when cooldown has completed', async () => {
+    (useProtocol as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...mockProtocolContext,
+      userData: {
+        ...mockProtocolContext.userData,
+        cooldownRequest: {
+          amount: 50000000000000000000n,
+          releaseTime: Math.floor(Date.now() / 1000) - 100, // already unlocked
+        },
+      },
+    });
+
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const claimWithdrawalButton = screen.getByText('Claim Withdrawal');
+    expect(claimWithdrawalButton).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(claimWithdrawalButton);
+    });
+
+    expect(mockWithdrawCooldown).toHaveBeenCalled();
+  });
+
+  it('should call withdraw with cooldown when requested', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const withdrawTab = screen.getByText('Withdraw');
+    fireEvent.click(withdrawTab);
+
+    const input = screen.getByPlaceholderText('0.0 NXDv3');
+    fireEvent.change(input, { target: { value: '25' } });
+
+    const cooldownBtn = screen.getByText('Request Withdrawal (24h Cooldown)');
+    await act(async () => {
+      fireEvent.click(cooldownBtn);
+    });
+
+    expect(mockWithdraw).toHaveBeenCalledWith(expect.anything(), false);
+  });
+
+  it('should call withdraw with instant penalty when penalty button is clicked', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const withdrawTab = screen.getByText('Withdraw');
+    fireEvent.click(withdrawTab);
+
+    const input = screen.getByPlaceholderText('0.0 NXDv3');
+    fireEvent.change(input, { target: { value: '25' } });
+
+    const penaltyBtn = screen.getByText('Withdraw Now (25% Penalty)');
+    await act(async () => {
+      fireEvent.click(penaltyBtn);
+    });
+
+    expect(mockWithdraw).toHaveBeenCalledWith(expect.anything(), true);
+  });
+});

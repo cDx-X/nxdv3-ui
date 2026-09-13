@@ -66,6 +66,7 @@ describe('ProtocolContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    mockMulticall.mockResolvedValue(Array(20).fill({ success: true, result: 1000n }));
   });
 
   afterEach(() => {
@@ -73,18 +74,20 @@ describe('ProtocolContext', () => {
   });
 
   it('should render with initial empty state', () => {
+    mockMulticall.mockResolvedValue([]);
     renderWithProvider({ isConnected: false, address: null });
     expect(screen.getByTestId('global-loaded')).toHaveTextContent('false');
     expect(screen.getByTestId('user-loaded')).toHaveTextContent('false');
   });
 
   it('should fetch global data on mount', async () => {
-    mockMulticall.mockResolvedValue(Array(15).fill({ success: true, result: 1000n }));
+    mockMulticall.mockResolvedValue(Array(20).fill({ success: true, result: 1000n }));
     renderWithProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('global-loaded')).toHaveTextContent('true');
     });
+    expect(screen.getByTestId('global-minted')).toBeInTheDocument();
   });
 
   it('should handle fetch error gracefully', async () => {
@@ -97,7 +100,7 @@ describe('ProtocolContext', () => {
   });
 
   it('should save and load from localStorage', async () => {
-    mockMulticall.mockResolvedValueOnce(Array(15).fill({ success: true, result: 1000n }));
+    mockMulticall.mockResolvedValue(Array(20).fill({ success: true, result: 1000n }));
     renderWithProvider();
 
     await waitFor(() => {
@@ -106,5 +109,47 @@ describe('ProtocolContext', () => {
 
     const cached = localStorage.getItem('nxdv3_cached_global_state_v2');
     expect(cached).toBeTruthy();
+  });
+
+  it('should fetch user data when connected and address is present', async () => {
+    mockMulticall.mockResolvedValue(Array(20).fill({ success: true, result: 5000n }));
+    renderWithProvider({
+      isConnected: true,
+      address: '0x1234567890123456789012345678901234567890',
+      networkConfig: {
+        chainId: 10,
+        name: 'Optimism',
+        addresses: {
+          protocolAddress: '0x1111',
+          vaultAddress: '0x2222',
+          nxdAddress: '0x3333',
+          dxnAddress: '0x4444',
+          taxRecipientAddress: '0x5555',
+          XenAddress: '0x6666',
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('user-loaded')).toHaveTextContent('true');
+    });
+    expect(screen.getByTestId('user-dxn')).toHaveTextContent('5000');
+  });
+
+  it('should trigger refreshAll when requested', async () => {
+    mockMulticall.mockResolvedValue(Array(20).fill({ success: true, result: 1000n }));
+    renderWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('global-loaded')).toHaveTextContent('true');
+    });
+
+    const initialCallCount = mockMulticall.mock.calls.length;
+    const refreshButton = screen.getByText('Refresh');
+    refreshButton.click();
+
+    await waitFor(() => {
+      expect(mockMulticall.mock.calls.length).toBeGreaterThan(initialCallCount);
+    });
   });
 });
