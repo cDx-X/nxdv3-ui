@@ -39,10 +39,10 @@ describe('networks', () => {
 
     it('Optimism has all contract addresses configured', () => {
       const addrs = NETWORKS[10].addresses;
-      expect(addrs.protocolAddress).toBe('0x53C58e813e318b6b28F5277379FAC9223bA1ddB7');
-      expect(addrs.vaultAddress).toBe('0xc96957F49A946b0207d3F15eBe6db4456433eEF9');
-      expect(addrs.nxdAddress).toBe('0x493dB003Dc5d77F635407D9a149E380B72670913');
-      expect(addrs.taxRecipientAddress).toBe('0xB0447F051b80F77Ce273a1bd349cFc38b656b39e');
+      expect(addrs.protocolAddress).toBe('0x9a781f3313635047EAfc0BeD3699721bc077161A');
+      expect(addrs.vaultAddress).toBe('0x80A339925a7d63F71fF4D78D61cE4F4CA94a81eA');
+      expect(addrs.nxdAddress).toBe('0x8FCADd5Bd76BD7B4C5f1BeBcB3792B336C979c07');
+      expect(addrs.taxRecipientAddress).toBe('0x45f042890cB43D575A2029930FD4B40Cb751b8eB');
       expect(addrs.XenAddress).toBe('0xeB585163DEbB1E637c6D617de3bEF99347cd75c8');
       expect(addrs.dxnAddress).toBe('0x90386DA49028ef1eF18F47f0a740cAAB50782576');
       expect(addrs.DBXenAddress).toBe('0x95202A555171458dA4a48be3b4C290eF832e38b2');
