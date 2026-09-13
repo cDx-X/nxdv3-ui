@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useProtocol } from '../context/ProtocolContext';
-import { Info, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Info, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ProtocolInfoCardProps {
   protocolAddress: string;
@@ -8,7 +7,6 @@ interface ProtocolInfoCardProps {
 }
 
 export const ProtocolInfoCard: React.FC<ProtocolInfoCardProps> = React.memo(() => {
-  const { refreshAll, isLoadingGlobal } = useProtocol();
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -27,17 +25,6 @@ export const ProtocolInfoCard: React.FC<ProtocolInfoCardProps> = React.memo(() =
             <ChevronDown size={16} className="text-gray-400 ml-1" />
           )}
         </div>
-        <button
-          className="btn-icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            refreshAll();
-          }}
-          title="Refresh"
-          disabled={isLoadingGlobal}
-        >
-          <RefreshCw size={14} className={isLoadingGlobal ? 'animate-spin' : ''} />
-        </button>
       </div>
 
       {isExpanded && (

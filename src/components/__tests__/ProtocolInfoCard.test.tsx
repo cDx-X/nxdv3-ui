@@ -2,38 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
-// Mock contexts
-vi.mock('../../context/ProtocolContext', () => ({
-  ProtocolContext: {
-    Provider: ({ children }: { children: React.ReactNode }) => children,
-  },
-  useProtocol: vi.fn(),
-}));
-
 // Mock lucide-react
 vi.mock('lucide-react', () => ({
   Info: () => React.createElement('span', null, 'Info'),
-  RefreshCw: () => React.createElement('span', null, 'Refresh'),
   ChevronDown: () => React.createElement('span', null, 'ChevronDown'),
   ChevronUp: () => React.createElement('span', null, 'ChevronUp'),
 }));
 
 import { ProtocolInfoCard } from '../ProtocolInfoCard';
-import { useProtocol } from '../../context/ProtocolContext';
-
-const mockProtocolContext = {
-  globalData: {
-    isLoaded: true,
-  },
-  refreshAll: vi.fn(),
-  isLoadingGlobal: false,
-  setIsLoadingGlobal: vi.fn(),
-};
 
 describe('ProtocolInfoCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useProtocol as any).mockReturnValue(mockProtocolContext);
   });
 
   it('renders info card with title', () => {
@@ -87,14 +67,5 @@ describe('ProtocolInfoCard', () => {
     fireEvent.click(screen.getByText(/Protocol Info/));
     
     expect(screen.getByText(/ETH Fee Split/)).toBeInTheDocument();
-  });
-
-  it('shows refresh button', () => {
-    render(React.createElement(ProtocolInfoCard, {
-      protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
-
-    expect(screen.getByTitle('Refresh')).toBeInTheDocument();
   });
 });
