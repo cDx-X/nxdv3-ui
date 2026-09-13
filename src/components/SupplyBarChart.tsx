@@ -168,7 +168,14 @@ export const SupplyBarChart: React.FC<{
         {/* Right: Vertical Metric Stack */}
         <div
           className="flex flex-col gap-2 supply-chart-side supply-metrics-stack"
-          style={{ flex: '1 1 200px', minWidth: '200px', maxWidth: '260px' }}
+          style={{
+            flex: '1 1 200px',
+            minWidth: '200px',
+            maxWidth: '260px',
+            display: 'flex',
+            flexDirection: 'column',
+            rowGap: '12px',
+          }}
         >
           <div className="card px-3 py-1 flex flex-col">
             <span className="text-xs text-secondary flex items-center gap-1.5">
