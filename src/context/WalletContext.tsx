@@ -78,9 +78,11 @@ const WalletProviderInner: React.FC<{
   // AppKit only clears this state when the WC relay session completes or
   // throws, so without a watchdog the "Connect Wallet" button stays disabled
   // and shows "Connecting..." indefinitely. Watchdog: if the status stays
-  // 'connecting' for too long, reset AppKit so the user can retry, and
-  // surface a hint about the most common causes (incl. the current origin,
-  // which must be allowlisted in cloud.reown.com).
+  // 'connecting' for too long, reset AppKit so the user can retry. The reset is
+  // SILENT — no error banner is shown, the button simply returns to
+  // "Connect Wallet". The most common root causes are an unreachable relay
+  // WebSocket or the deployed origin not being allowlisted in the Reown Cloud
+  // project.
   const CONNECT_TIMEOUT_MS = 30000;
   const connectingSinceRef = useRef<number | null>(null);
 
@@ -151,17 +153,12 @@ const WalletProviderInner: React.FC<{
         connectingSinceRef.current = null;
         await resetAppKitConnection();
         setConnectionReset(true);
-        setError(
-          `Wallet connection timed out — the WalletConnect session wasn't completed on this device. ` +
-            `On a phone: open this page inside your wallet app's browser (MetaMask, Trust, Rabby) or scan the QR ` +
-            `with your wallet app from a desktop; make sure the network doesn't block wss://relay.walletconnect.org; ` +
-            `and confirm ${window.location.origin} is allowlisted in cloud.reown.com → Configuration → Domain. ` +
-            `Tap Connect Wallet to retry.`
-        );
+        // Silent release — no error banner. The watchdog's job is to keep the
+        // UI usable (unstick the button), not to explain possible causes.
       }
     }, CONNECT_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [status, setError, resetAppKitConnection]);
+  }, [status, resetAppKitConnection]);
 
   // AppKit's modal is a web component whose Account View (Fund wallet / Swap /
 // Send / Activity) is rendered internally after a successful connection. React
