@@ -71,7 +71,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({ isOpen, onClos
                 protocol's tiered deposit engine.
               </li>
               <li>
-                <strong>Hard Max Supply:</strong> MaxSupply = InitialSupply + MAX_REWARDS_SUPPLY.
+                <strong>Hard Max Supply:</strong> MaxSupply = InitialSupply (30,000 NXD) + MAX_REWARDS_SUPPLY (120,000).
               </li>
               <li>
                 <strong>Effective Max Supply:</strong> Tokens sent to dead addresses or burned internally
