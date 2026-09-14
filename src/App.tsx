@@ -8,6 +8,7 @@ import { ProtocolStatsWindow } from './components/ProtocolStatsWindow';
 import { ProtocolInfoCard } from './components/ProtocolInfoCard';
 import { Footer } from './components/Footer';
 import { AlertTriangle } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import './styles.css';
 
 // Code-split the charts page (and its Chart.js dependency) so it is only loaded
@@ -164,6 +165,7 @@ const App: React.FC = () => {
         </video>
         <div className="video-overlay" />
         <AppContent />
+        <Analytics />
       </ProtocolProvider>
     </WalletProvider>
   );
