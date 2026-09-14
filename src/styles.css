@@ -637,13 +637,22 @@ body {
 
 .footer-label {
   color: var(--text-secondary);
+  /* Let the label shrink/truncate so the pill stays anchored to the right */
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .footer-address-pill {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 176px;
+  /* Anchor the copy/etherscan buttons to the right edge so they line up
+     vertically across all rows */
+  justify-content: space-between;
+  flex: 0 0 auto;
+  width: 176px;
   box-sizing: border-box;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
@@ -656,7 +665,7 @@ body {
   white-space: nowrap;
 }
 
-/* Keep all address pills the same fixed width on desktop */
+/* Full-width pills on small screens */
 @media (max-width: 480px) {
   .footer-address-pill {
     width: 100%;
