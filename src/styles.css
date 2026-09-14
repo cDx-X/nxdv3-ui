@@ -665,6 +665,13 @@ body {
   white-space: nowrap;
 }
 
+/* The universal `* { font-family: Inter ... }` rule overrides the inherited
+   monospace font on this span, making each address a different width and
+   shifting the copy button. Re-apply monospace explicitly. */
+.footer-address-text {
+  font-family: monospace;
+}
+
 /* Full-width pills on small screens */
 @media (max-width: 480px) {
   .footer-address-pill {

@@ -55,7 +55,7 @@ export const Footer: React.FC = () => {
                 <div key={item.key} className="footer-contract-row">
                   <span className="footer-label">{item.name}</span>
                   <div className="footer-address-pill">
-                    <span>{formatAddr(item.address)}</span>
+                    <span className="footer-address-text">{formatAddr(item.address)}</span>
                     <button
                       className="footer-icon-btn"
                       onClick={() => handleCopy(item.key, item.address)}
