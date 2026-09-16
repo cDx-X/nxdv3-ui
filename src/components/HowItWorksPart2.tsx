@@ -15,8 +15,10 @@ export const HowItWorksPart2: React.FC = () => (
         <strong>Asynchronous Gas-Optimized Processing (TaxRecipientV3):</strong>
       </p>
       <p>
-        To prevent high gas overhead during regular transfers, tax collected on address(this) is
-        processed asynchronously via <code>processTax()</code>:
+        To prevent high gas overhead and slippage during regular transfers, 
+        tax handling is decoupled: 30% of the tax is burned immediately, 
+        while the remaining 70% is transferred directly to TaxRecipientV3 
+        to be processed asynchronously via processTax():
       </p>
       <ul>
         <li>
