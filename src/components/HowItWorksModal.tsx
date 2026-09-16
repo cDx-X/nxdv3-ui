@@ -13,7 +13,11 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({ isOpen, onClos
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '900px', width: '92vw' }}
+      >
         <div className="modal-header">
           <div className="flex items-center gap-2">
             <BookOpen size={20} className="icon-gold" />
@@ -24,7 +28,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({ isOpen, onClos
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-body how-it-works-body">
           <p className="lead-text">
             <strong>NXDv3 Protocol</strong> is a 
             hyper-deflationary derivative ecosystem. Built on top of the DBXen (DXNv2) yield ecosystem, it aligns multi-tier

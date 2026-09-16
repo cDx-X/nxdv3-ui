@@ -2,29 +2,17 @@ import React from 'react';
 
 export const AuditPart1: React.FC = () => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div className="audit-section-stack">
       <div>
-        <h3
-          className="text-sm font-semibold mb-2"
-          style={{ color: 'var(--accent-gold)', fontSize: '1.05rem' }}
-        >
+        <h3>
           1. Executive Summary
         </h3>
-        <p>
+        <p className="audit-intro">
           The NXD v3 Protocol is a decentralized ecosystem integrating deflationary tokenomics,
           autonomous liquidity balancing, multi-tier minting, and dual-asset staking rewards. The
           protocol consists of four core contracts:
         </p>
-        <ul
-          style={{
-            paddingLeft: '1.25rem',
-            marginTop: '0.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.4rem',
-            listStyleType: 'disc',
-          }}
-        >
+        <ul>
           <li>
             <strong>NXDv3ERC20.sol</strong>: The native token with an autonomous 7-day epoch
             burn-tracking engine, automated transfer tax routing, and dead-address burn redirection.
@@ -48,15 +36,12 @@ export const AuditPart1: React.FC = () => {
       </div>
 
       <div>
-        <h3
-          className="text-sm font-semibold mb-3"
-          style={{ color: 'var(--accent-gold)', fontSize: '1.05rem' }}
-        >
+        <h3>
           Key Architectural Strengths
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="audit-section-stack">
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+            <h4>
               1. DEX-Decoupled Transfers
             </h4>
             <p>
@@ -67,7 +52,7 @@ export const AuditPart1: React.FC = () => {
             </p>
           </div>
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+            <h4>
               2. Deterministic Liquidity Ownership
             </h4>
             <p>
@@ -77,7 +62,7 @@ export const AuditPart1: React.FC = () => {
             </p>
           </div>
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+            <h4>
               3. Dual Continuous Reward Streaming
             </h4>
             <p>
@@ -86,7 +71,7 @@ export const AuditPart1: React.FC = () => {
             </p>
           </div>
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>
+            <h4>
               4. Resilient Error Handling
             </h4>
             <p>

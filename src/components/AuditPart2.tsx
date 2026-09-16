@@ -75,48 +75,28 @@ Stake DXN (35%)")):::external
 
 export const AuditPart2: React.FC = () => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div className="audit-section-stack">
       <div>
-        <h3
-          className="text-sm font-semibold mb-3"
-          style={{ color: 'var(--accent-gold)', fontSize: '1.05rem' }}
-        >
+        <h3>
           2. System Architecture & Contract Deep-Dive
         </h3>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="audit-section-stack">
           {/* Section A: NXDv3ERC20.sol */}
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.35rem' }}>
+            <h4>
               A. Token Core: NXDv3ERC20.sol
             </h4>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5 style={{ color: 'var(--text-primary)', fontWeight: 500, marginBottom: '0.35rem' }}>
+              <h5>
                 Transfer Tax Mechanism (<code>_update</code>)
               </h5>
-              <ul
-                style={{
-                  paddingLeft: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.4rem',
-                  listStyleType: 'disc',
-                }}
-              >
+              <ul>
                 <li>
                   <strong>Rate</strong>: 5% (<code>amount / 20</code>) evaluated in <code>getAmountsAfterTax</code>.
                   <br /><strong>Exemptions</strong>:
-                  <ul
-                    style={{
-                      paddingLeft: '1.25rem',
-                      marginTop: '0.2rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.2rem',
-                      listStyleType: 'circle',
-                    }}
-                  >
+                  <ul>
                     <li>
                       Excluded when sender (<code>isExcludedWhenSender == true</code>): The Protocol, the TaxRecipientV3 contract, the token contract itself, and the Uniswap V2 Pair (for token purchases).
                     </li>
@@ -130,20 +110,11 @@ export const AuditPart2: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5 style={{ color: 'var(--text-primary)', fontWeight: 500, marginBottom: '0.35rem' }}>
+              <h5>
                 Immediate Tax Routing
               </h5>
               <p>When a transfer incurs tax:</p>
-              <ul
-                style={{
-                  paddingLeft: '1.25rem',
-                  marginTop: '0.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.3rem',
-                  listStyleType: 'disc',
-                }}
-              >
+              <ul>
                 <li>
                   <strong>30% of the tax (1.5% of total transfer)</strong> is immediately burned to <code>address(0)</code> via <code>_recordBurn</code>.
                 </li>
@@ -157,7 +128,7 @@ export const AuditPart2: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5 style={{ color: 'var(--text-primary)', fontWeight: 500, marginBottom: '0.35rem' }}>
+              <h5>
                 Dead-Address Redirection
               </h5>
               <p>
@@ -166,34 +137,25 @@ export const AuditPart2: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5 style={{ color: 'var(--text-primary)', fontWeight: 500, marginBottom: '0.35rem' }}>
+              <h5>
                 Initial Timestamp (T0)
               </h5>
               <p>
                 Initialized on the first burn event and aligned to midnight UTC:
               </p>
-              <p style={{ fontFamily: 'monospace', margin: '0.5rem 0' }}>
+              <p className="audit-formula">
                 firstBurnTimestamp = (block.timestamp / 1 day) * 1 day
               </p>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5 style={{ color: 'var(--text-primary)', fontWeight: 500, marginBottom: '0.35rem' }}>
+              <h5>
                 Epoch Calculation
               </h5>
-              <p style={{ fontFamily: 'monospace', margin: '0.5rem 0' }}>
+              <p className="audit-formula">
                 currentEpoch = (block.timestamp - firstBurnTimestamp) / 7 days
               </p>
-              <ul
-                style={{
-                  paddingLeft: '1.25rem',
-                  marginTop: '0.5rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.3rem',
-                  listStyleType: 'disc',
-                }}
-              >
+              <ul>
                 <li>
                   <strong>Complexity</strong>: O(1) on-chain state updates. Every burn updates <code>epochBurned[epoch]</code> and <code>totalNXDBurned</code>.
                 </li>
@@ -205,30 +167,13 @@ export const AuditPart2: React.FC = () => {
           </div>
           {/* Section B: TaxRecipientV3.sol */}
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.35rem' }}>
+            <h4>
               B. Tax Processor: TaxRecipientV3.sol
             </h4>
-            <ul
-              style={{
-                paddingLeft: '1.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.4rem',
-                listStyleType: 'disc',
-              }}
-            >
+            <ul>
               <li>
                 <strong>Tax Buffer & LP Provisioning (<code>_processTaxInternal</code>)</strong>:
-                <ul
-                  style={{
-                    paddingLeft: '1.25rem',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    listStyleType: 'circle',
-                  }}
-                >
+                <ul>
                   <li>
                     <strong>Step 1 (DXN Staking)</strong>: 25% of accumulated DXN is approved and
                     sent to <code>NXDv3Protocol.depositNoMint(dxnToStake)</code>, automatically
@@ -236,16 +181,7 @@ export const AuditPart2: React.FC = () => {
                   </li>
                   <li>
                     <strong>Step 2 (Optimal Ratio LP Minting)</strong>:
-                    <ul
-                      style={{
-                        paddingLeft: '1.25rem',
-                        marginTop: '0.2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.2rem',
-                        listStyleType: 'square',
-                      }}
-                    >
+                    <ul>
                       <li>
                         Queries the current Uniswap V2 reserves (<code>reserveNXD</code>,{' '}
                         <code>reserveDXN</code>).
@@ -282,33 +218,16 @@ export const AuditPart2: React.FC = () => {
 
           {/* Section C: NXDv3Protocol.sol */}
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.35rem' }}>
+            <h4>
               C. Protocol Coordinator: NXDv3Protocol.sol
             </h4>
-            <ul
-              style={{
-                paddingLeft: '1.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.4rem',
-                listStyleType: 'disc',
-              }}
-            >
+            <ul>
               <li>
                 <strong>
                   Tiered Minting Engine (<code>deposit</code> / <code>_calculateDepositOutput</code>)
                 </strong>
                 :
-                <ul
-                  style={{
-                    paddingLeft: '1.25rem',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    listStyleType: 'circle',
-                  }}
-                >
+                <ul>
                   <li>
                     <strong>Deposit Ceiling</strong>: Protocol-wide deposit minting supply (<code>MINTABLE_SUPPLY_FOR_DEPOSIT = maxSupply - initialSupply</code>, up to 120,000 NXD). No artificial per-wallet limit; excess DXN is never consumed.
                   </li>
@@ -317,16 +236,7 @@ export const AuditPart2: React.FC = () => {
                     <p style={{ marginTop: '0.2rem', marginBottom: '0.2rem' }}>
                       Priced across 3 equal tiers (<code>TIER_SIZE = MINTABLE_SUPPLY_FOR_DEPOSIT / 3</code>):
                     </p>
-                    <ul
-                      style={{
-                        paddingLeft: '1.25rem',
-                        marginTop: '0.2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.2rem',
-                        listStyleType: 'square',
-                      }}
-                    >
+                    <ul>
                       <li>
                         <strong>Tier 1 (First 1/3 of deposit supply)</strong>: 1 DXN → 1.000 NXD (1:1 / <code>BASE_DEPOSIT_RATE</code>)
                       </li>
@@ -358,29 +268,11 @@ export const AuditPart2: React.FC = () => {
                 <p style={{ marginTop: '0.25rem' }}>
                   When ETH rewards accumulate in the protocol from DBXen fee claims:
                 </p>
-                <ol
-                  style={{
-                    paddingLeft: '1.25rem',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    listStyleType: 'decimal',
-                  }}
-                >
+                <ol>
                   <li>
                     <strong>70% ETH</strong>: Swapped for DXN on Uniswap V3 (TWAP checked via{' '}
                     <code>v3Oracle.getHumanQuote</code>):
-                    <ul
-                      style={{
-                        paddingLeft: '1.25rem',
-                        marginTop: '0.2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.2rem',
-                        listStyleType: 'circle',
-                      }}
-                    >
+                    <ul>
                       <li>
                         <strong>10%</strong> of received DXN → Sent to <code>0xDeaDbeef...</code>{' '}
                         (burned).
@@ -411,18 +303,10 @@ export const AuditPart2: React.FC = () => {
           </div>
           {/* Section D: NXDv3StakingVault.sol */}
           <div>
-            <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.35rem' }}>
+            <h4>
               D. Staking Vault: NXDv3StakingVault.sol
             </h4>
-            <ul
-              style={{
-                paddingLeft: '1.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.4rem',
-                listStyleType: 'disc',
-              }}
-            >
+            <ul>
               <li>
                 <strong>Dual-Reward Continuous Linear Streaming Engine (Synthetix-Style)</strong>:
                 <p style={{ marginTop: '0.25rem' }}>
@@ -434,16 +318,7 @@ export const AuditPart2: React.FC = () => {
                   Zero-Staker Buffer Protection (<code>unallocatedRewardsETH</code> & <code>unallocatedRewardsXEN</code>)
                 </strong>
                 :
-                <ul
-                  style={{
-                    paddingLeft: '1.25rem',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    listStyleType: 'circle',
-                  }}
-                >
+                <ul>
                   <li>
                     If ETH or XEN rewards arrive while <code>totalStaked == 0</code>, the incoming assets are captured in <code>unallocatedRewardsETH</code> and <code>unallocatedRewardsXEN</code>.
                   </li>
@@ -460,16 +335,7 @@ export const AuditPart2: React.FC = () => {
               </li>
               <li>
                 <strong>Withdrawals & 24h Cooldown Management</strong>:
-                <ul
-                  style={{
-                    paddingLeft: '1.25rem',
-                    marginTop: '0.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3rem',
-                    listStyleType: 'circle',
-                  }}
-                >
+                <ul>
                   <li>
                     <strong>
                       Instant with Penalty (<code>acceptsPenalty = true</code>)

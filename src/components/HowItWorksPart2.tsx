@@ -80,8 +80,8 @@ export const HowItWorksPart2: React.FC = () => (
       <h3>
         <Flame size={18} className="icon-gold" /> 📊 Quantitative Summary of Deflationary Drivers
       </h3>
-      <div className="flywheel-box">
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div className="doc-table-wrapper">
+        <table>
           <thead>
             <tr>
               <th>Vector</th>

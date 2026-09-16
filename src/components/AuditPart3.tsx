@@ -2,32 +2,18 @@
 
 export const AuditPart3: React.FC = () => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div className="audit-section-stack">
       <div>
-        <h3
-          className="text-sm font-semibold mb-3"
-          style={{ color: 'var(--accent-gold)', fontSize: '1.05rem' }}
-        >
+        <h3>
           3. Mathematical & Economic Verification
         </h3>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.35rem' }}>
+        <div className="audit-block">
+          <h4>
             A. Transfer Tax Flow (5% Total Tax)
           </h4>
           <p>For an exemplary transaction of 100 NXD:</p>
-          <div
-            style={{
-              marginTop: '0.75rem',
-              padding: '1rem',
-              backgroundColor: 'rgba(15, 23, 42, 0.4)',
-              borderRadius: '6px',
-              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-              fontSize: '0.8rem',
-              lineHeight: 1.6,
-              color: '#94a3b8',
-            }}
-          >
+          <div className="audit-calculation">
             <div>Recipient Receives: 95.0 NXD</div>
             <div style={{ marginTop: '0.5rem' }}>Total Tax Collected: 5.0 NXD (100%)</div>
             <div style={{ marginTop: '0.5rem' }}>Layer 1: NXDv3ERC20 Split</div>
@@ -42,19 +28,7 @@ export const AuditPart3: React.FC = () => {
             <div style={{ paddingLeft: '1rem' }}>Parity: Exactly 1:1 value ratio for balanced Uniswap V2 LP minting.</div>
           </div>
 
-          <div
-            style={{
-              marginTop: '1rem',
-              padding: '1rem',
-              backgroundColor: 'rgba(15, 23, 42, 0.4)',
-              borderRadius: '6px',
-              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-              fontSize: '0.75rem',
-              lineHeight: 1.5,
-              color: '#94a3b8',
-              whiteSpace: 'pre',
-            }}
-          >
+          <div className="audit-calculation audit-calculation-tree">
 {`Total Tax (5.0 NXD)
     ├── 30% Burned Immediately (1.5 NXD)
     └── 70% to TaxRecipientV3 (3.5 NXD)
@@ -65,24 +39,12 @@ export const AuditPart3: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.35rem' }}>
+        <div className="audit-block">
+          <h4>
             B. DBXen Protocol Fee Distribution
           </h4>
           <p>For an exemplary reward harvest of 1.00 ETH:</p>
-          <div
-            style={{
-              marginTop: '0.75rem',
-              padding: '1rem',
-              backgroundColor: 'rgba(15, 23, 42, 0.4)',
-              borderRadius: '6px',
-              fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-              fontSize: '0.75rem',
-              lineHeight: 1.5,
-              color: '#94a3b8',
-              whiteSpace: 'pre',
-            }}
-          >
+          <div className="audit-calculation audit-calculation-tree">
 {`Harvested DBXen Fees (1.00 ETH)
     ├── 70% Swapped to DXN (0.70 ETH)
     │    ├── 10% Burned to DEAD (0.07 ETH equiv.)

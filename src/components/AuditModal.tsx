@@ -18,38 +18,27 @@ export const AuditModal: React.FC<AuditModalProps> = ({ isOpen, onClose }) => {
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '850px', width: '92vw' }}
+        style={{ maxWidth: '900px', width: '92vw' }}
       >
         <div className="modal-header">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 modal-header-group">
             <ShieldCheck size={20} className="icon-gold" />
             <h2 className="text-lg font-bold">A.I. Smart Contract Architecture, Mathematical Verification, and Security Audit</h2>
-            <p>NXDv3 Protocol smart contracts - audited periodically</p>
-            <p>Last updated: 10/09/2026</p>
+            <p className="modal-header-subtitle">NXDv3 Protocol smart contracts - audited periodically</p>
+            <p className="modal-header-subtitle">Last updated: 10/09/2026</p>
           </div>
           <button className="modal-close-btn" onClick={onClose} title="Close">
             <X size={20} />
           </button>
         </div>
 
-        <div
-          className="modal-body"
-          style={{
-            maxHeight: '72vh',
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem',
-            fontSize: '0.9rem',
-            color: 'var(--text-secondary)',
-          }}
-        >
+        <div className="modal-body audit-body">
           <AuditPart1 />
-          <hr style={{ borderColor: 'var(--border-color)', opacity: 0.3 }} />
+          <hr />
           <AuditPart2 />
-          <hr style={{ borderColor: 'var(--border-color)', opacity: 0.3 }} />
+          <hr />
           <AuditPart3 />
-          <hr style={{ borderColor: 'var(--border-color)', opacity: 0.3 }} />
+          <hr />
           <AuditPart4 />
         </div>
 
