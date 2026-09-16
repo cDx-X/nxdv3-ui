@@ -1,0 +1,318 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import "./TaxRecipientV3.sol";
+
+/**
+ * @title NXD ERC20 Token V3 (Ultra-Simple 7-Day Epoch Burn Counter)
+ * @dev Simplified token engine with an autonomous burn counter in 7-day epochs.
+ *      The starting point (T0) is set automatically at the FIRST BURN of tokens
+ *      and aligned to midnight (00:00:00 UTC) of that day.
+ *      Handles automatic redirection of transfers to 0x...dead to address(0).
+ */
+contract NXDv3ERC20 is Context, ERC20 {
+    error Unauthorized();
+    error ZeroAddress();
+    error ZeroSupply();
+    error MaxSupply();
+    error Expired();
+
+    // --- Immutable addresses and limits (Immutables & Constants) ---
+    address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
+    address public immutable protocol;
+    TaxRecipientV3 public immutable taxRecipient;
+    uint256 public constant MAX_REWARDS_SUPPLY = 120000 ether;
+    uint256 public immutable maxSupply;
+
+    // Duration of a single epoch (exactly 7 days)
+    uint256 public constant EPOCH_PERIOD = 7 days;
+
+    struct TaxWhitelist {
+        bool isExcludedWhenSender;
+        bool isExcludedWhenRecipient;
+    }
+
+    mapping(address => TaxWhitelist) public isExcludedFromTax;
+
+    uint256 public totalMinted;
+
+    // 2-Step Governance
+    address public governance;
+    address public pendingGovernance;
+
+    // Tax control
+    address public taxProcessor;
+    bool private _isProcessingTax;
+
+    // --- Ultra-Simple Epoch and Burn System ---
+    uint256 public firstBurnTimestamp; // Midnight 00:00:00 UTC of the day of the first burn
+    uint256 public totalNXDBurned;      // Total amount of burned tokens (all-time)
+
+    // Epoch number (0, 1, 2, ...) => amount of tokens burned in that specific epoch
+    mapping(uint256 => uint256) public epochBurned;
+
+    // Helper structure dedicated to frontend analytics (charts)
+    struct EpochData {
+        uint256 epoch;
+        uint256 startTime;
+        uint256 burned;
+    }
+
+    // --- Events ---
+    event GovernanceTransferStarted(address indexed currentGovernance, address indexed newGovernance);
+    event GovernanceTransferred(address indexed previousGovernance, address indexed newGovernance);
+    event TaxCollected(address indexed from, uint256 taxAmount);
+    event TaxWhitelistUpdated(address indexed account, bool isExcludedWhenSender, bool isExcludedWhenRecipient);
+    event TaxProcessorUpdated(address indexed newTaxProcessor);
+    event FirstBurnRecorded(uint256 firstBurnTimestamp);
+    event TokensBurned(uint256 indexed epoch, uint256 amountBurned, uint256 totalBurned);
+
+    modifier onlyGovernance() {
+        if (msg.sender != governance) revert Unauthorized();
+        _;
+    }
+
+    modifier lockTaxProcessing() {
+        if (_isProcessingTax) revert Unauthorized();
+        _isProcessingTax = true;
+        _;
+        _isProcessingTax = false;
+    }
+
+    constructor(
+        uint256 _initialSupply,
+        address _initialSupplyTo,
+        address _governance
+    ) ERC20("opNXDv3", "opNXDv3") {
+        if (_governance == address(0)) revert ZeroAddress();
+        if (_initialSupplyTo == address(0)) revert ZeroAddress();
+        if (_initialSupply == 0) revert ZeroSupply();
+
+        protocol = msg.sender;
+        governance = _governance;
+
+        maxSupply = _initialSupply + MAX_REWARDS_SUPPLY;
+
+        taxRecipient = new TaxRecipientV3(msg.sender);
+
+        _mint(_initialSupplyTo, _initialSupply);
+
+        _updateTaxWhitelist(address(this), true, true);
+        _updateTaxWhitelist(address(taxRecipient), true, true);
+        _updateTaxWhitelist(msg.sender, true, true);
+    }
+
+    // --- 2-Step Governance ---
+
+    function transferGovernance(address _newGovernance) external onlyGovernance {
+        if (_newGovernance == address(0)) revert ZeroAddress();
+        pendingGovernance = _newGovernance;
+        emit GovernanceTransferStarted(governance, _newGovernance);
+    }
+
+    function acceptGovernance() external {
+        if (msg.sender != pendingGovernance) revert Unauthorized();
+        emit GovernanceTransferred(governance, pendingGovernance);
+        governance = pendingGovernance;
+        pendingGovernance = address(0);
+    }
+
+    function setTaxProcessor(address _newTaxProcessor) external onlyGovernance {
+        if (_newTaxProcessor == address(0)) revert ZeroAddress();
+        taxProcessor = _newTaxProcessor;
+        emit TaxProcessorUpdated(_newTaxProcessor);
+    }
+
+    function updateTaxWhitelist(address account, bool whenSender, bool whenRecipient) external {
+        if (msg.sender != governance && msg.sender != protocol) revert Unauthorized();
+        _updateTaxWhitelist(account, whenSender, whenRecipient);
+    }
+
+    function _updateTaxWhitelist(address account, bool whenSender, bool whenRecipient) internal {
+        isExcludedFromTax[account] = TaxWhitelist(whenSender, whenRecipient);
+        emit TaxWhitelistUpdated(account, whenSender, whenRecipient);
+    }
+
+    // --- Burn Counter Logic (Ultra-Simple Engine) ---
+
+    /**
+     * @notice Returns the current epoch number (0 for the first 7-day period, 1 for the second, etc.).
+     */
+    function currentEpoch() public view returns (uint256) {
+        if (firstBurnTimestamp == 0) return 0;
+        return (block.timestamp - firstBurnTimestamp) / EPOCH_PERIOD;
+    }
+
+    /**
+     * @notice Returns the start timestamp of a given epoch (00:00:00 UTC).
+     */
+    function getEpochStartTime(uint256 epochId) public view returns (uint256) {
+        if (firstBurnTimestamp == 0) return 0;
+        return firstBurnTimestamp + (epochId * EPOCH_PERIOD);
+    }
+
+    /**
+     * @dev Records a burn in the current 7-day epoch.
+     */
+    function _recordBurn(uint256 amount) internal {
+        if (amount == 0) return;
+
+        // Initialize T0 at the first real burn (aligned to 00:00:00 UTC)
+        if (firstBurnTimestamp == 0) {
+            firstBurnTimestamp = (block.timestamp / 1 days) * 1 days;
+            emit FirstBurnRecorded(firstBurnTimestamp);
+        }
+
+        uint256 epoch = (block.timestamp - firstBurnTimestamp) / EPOCH_PERIOD;
+
+        epochBurned[epoch] += amount;
+        totalNXDBurned += amount;
+
+        emit TokensBurned(epoch, amount, totalNXDBurned);
+    }
+
+    // --- Chart Data Read Functions (Frontend View) ---
+
+    /**
+     * @notice Fetches the burn data array for a given epoch range.
+     */
+    function getEpochsBurnData(
+        uint256 fromEpoch,
+        uint256 toEpoch
+    ) public view returns (EpochData[] memory data) {
+        if (firstBurnTimestamp == 0 || fromEpoch > toEpoch) {
+            return new EpochData[](0);
+        }
+
+        uint256 current = currentEpoch();
+        if (toEpoch > current) {
+            toEpoch = current;
+        }
+
+        if (fromEpoch > toEpoch) {
+            return new EpochData[](0);
+        }
+
+        uint256 count = toEpoch - fromEpoch + 1;
+        data = new EpochData[](count);
+
+        for (uint256 i = 0; i < count; i++) {
+            uint256 ep = fromEpoch + i;
+            data[i] = EpochData({
+                epoch: ep,
+                startTime: firstBurnTimestamp + (ep * EPOCH_PERIOD),
+                burned: epochBurned[ep]
+            });
+        }
+    }
+
+    /**
+     * @notice Fetches burn data for all epochs so far (from T0 to today).
+     */
+    function getAllEpochsBurnData() external view returns (EpochData[] memory) {
+        if (firstBurnTimestamp == 0) return new EpochData[](0);
+        return getEpochsBurnData(0, currentEpoch());
+    }
+
+    /**
+     * @notice Returns the real maximum achievable token supply (includes burned tokens).
+     */
+    function effectiveMaxSupply() external view returns (uint256) {
+        return maxSupply - totalNXDBurned;
+    }
+
+    /**
+     * @notice Returns the number of tokens remaining to be minted (e.g. rewards).
+     */
+    function remainingToMint() external view returns (uint256) {
+        return maxSupply - totalMinted;
+    }
+
+    // --- Transfer, Tax and Burning ---
+
+    function _update(address from, address to, uint256 value) internal override {
+        if (from == address(0)) {
+            // Minting
+            totalMinted += value;
+            super._update(from, to, value);
+        } else if (to == address(0) || to == DEAD_ADDRESS) {
+            // Manual burn or transfer to the 0x0 / 0x...dead address
+            // All tokens sent to DEAD_ADDRESS are physically redirected to address(0)
+            _recordBurn(value);
+            super._update(from, address(0), value);
+        } else {
+            // Regular transfer with 5% tax applied
+            (uint256 amountAfterTax, uint256 taxAmount) = getAmountsAfterTax(from, to, value);
+
+            if (taxAmount == 0) {
+                super._update(from, to, value);
+            } else {
+                emit TaxCollected(from, taxAmount);
+
+                uint256 burnAmount = (taxAmount * 3) / 10;     // 30% tax to be burned (1.5% of the transfer)
+                uint256 contractTax = taxAmount - burnAmount;  // 70% tax for TaxRecipient (3.5% of the transfer)
+
+                super._update(from, to, amountAfterTax);
+
+                if (burnAmount > 0) {
+                    _recordBurn(burnAmount);
+                    super._update(from, address(0), burnAmount);
+                }
+
+                if (contractTax > 0) {
+                    super._update(from, address(taxRecipient), contractTax);
+                }
+            }
+        }
+    }
+
+    function getAmountsAfterTax(address from, address to, uint256 amount) public view returns (uint256, uint256) {
+        if (
+            to == address(0) ||
+            to == DEAD_ADDRESS ||
+            isExcludedFromTax[from].isExcludedWhenSender || 
+            isExcludedFromTax[to].isExcludedWhenRecipient
+        ) {
+            return (amount, 0);
+        }
+        uint256 taxAmount = amount / 20; // 5% tax
+        return (amount - taxAmount, taxAmount);
+    }
+
+    function _checkTaxCaller() internal view {
+        if (msg.sender != taxProcessor && msg.sender != governance && msg.sender != protocol) {
+            revert Unauthorized();
+        }
+    }
+
+    // --- Tax processing ---
+
+    function processTax() external lockTaxProcessing {
+        _checkTaxCaller();
+        _executeProcessTax(block.timestamp);
+    }
+
+    function processTax(uint256 deadline) external lockTaxProcessing {
+        _checkTaxCaller();
+        if (block.timestamp > deadline) revert Expired();
+        _executeProcessTax(deadline);
+    }
+
+    function _executeProcessTax(uint256 deadline) internal {
+        taxRecipient.processTax(deadline);
+    }
+
+    // --- External minting and burning ---
+
+    function mint(address account, uint256 amount) external {
+        if (msg.sender != protocol) revert Unauthorized();
+        if (totalMinted + amount > maxSupply) revert MaxSupply();
+        _mint(account, amount);
+    }
+
+    function burn(uint256 amount) external {
+        _burn(msg.sender, amount);
+    }
+}

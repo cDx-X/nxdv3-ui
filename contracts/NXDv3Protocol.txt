@@ -1,0 +1,531 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+import "../interfaces/IDBXen.sol";
+import "../interfaces/ISwapRouter.sol";
+import "../interfaces/IV3Oracle.sol";
+import "../interfaces/IUniswapV2Router02.sol";
+import "../interfaces/IUniswapV2Factory.sol";
+import "../interfaces/INXDv3Protocol.sol";
+import "../dbxen/interfaces/IDBXenViews.sol";
+import "../V2Oracle.sol";
+
+import "./NXDv3ERC20.sol";
+import "./NXDv3StakingVault.sol";
+import "./TaxRecipientV3.sol";
+
+interface INXDv3Burnable is IERC20 {
+    function burn(uint256 amount) external;
+}
+
+/**
+ * @title NXDv3Protocol (Optimized NXD v3 Core Protocol & Secure Staking)
+ * @dev Main protocol coordinator. Bytecode-size optimized to respect Shanghai EIP-3860 limit.
+ */
+contract NXDv3Protocol is ReentrancyGuard {
+    using SafeERC20 for IERC20;
+    using SafeERC20 for INXDv3Burnable;
+
+    error NotInitialized();
+    error PoolAlreadyCreated();
+    error GotNothing();
+    error InvalidAmount();
+    error SendETHFail();
+    error NoRewards();
+    error NXDMaxSupplyMinted();
+    error NotAuthorized();
+    error InvalidAddress();
+    error CallFailed();
+    error VaultEmergencyWithdrawActive();
+    error Expired();
+
+    event PoolCreated(address indexed uniswapV2Pair, uint256 nxdDesired, uint256 dxnDesired);
+    event Deposit(address indexed from, uint256 amount, uint256 amountReceived);
+    event HandleRewards(
+        uint256 ethReceived,
+        uint256 dxnAmountReceived,
+        uint256 dxnBurned,
+        uint256 dxnAddedToStakeQueue,
+        uint256 nxdBurned,
+        uint256 ethToStakingVault,
+        uint256 ethSwappedForXen,
+        uint256 xenSent
+    );
+    event SlippageBpsChanged(uint256 newBps);
+    event DXNStakedFromRewards(uint256 amount);
+    event SlippageBpsOnTaxChanged(uint256 newBps);
+    event TaxForceSwept();
+    event RewardsProcessorUpdated(address indexed newProcessor);
+
+    struct RewardsVars {
+        uint256 dxnAmountReceivedFromSwap;
+        uint256 dxnBurned;
+        uint256 nxdBoughtAndBurned;
+        uint256 dxnAddedToStake;
+        uint256 xenSent;
+        uint256 ethToSwapForDXN;
+        uint256 ethToStakingVault;
+        uint256 ethToSwapForXen;
+    }
+
+    // --- Token and Contract Configuration ---
+    IERC20 public constant dxn = IERC20(0x90386DA49028ef1eF18F47f0a740cAAB50782576);
+    IERC20 public constant xen = IERC20(0xeB585163DEbB1E637c6D617de3bEF99347cd75c8);
+    IDBXen public immutable dbxen;
+    INXDv3Burnable public immutable nxd;
+    NXDv3StakingVault public immutable nxdStakingVault;
+    TaxRecipientV3 public immutable taxRecipient;
+    IDBXenViews public immutable dbxenViews;
+    IV3Oracle public immutable v3Oracle;
+    V2Oracle public v2Oracle;
+
+    // --- Uniswap Configuration ---
+    ISwapRouter public constant UNISWAP_V3_ROUTER = ISwapRouter(payable(0xE592427A0AEce92De3Edee1F18E0157C05861564));
+    IUniswapV2Router02 public constant UNISWAP_V2_ROUTER = IUniswapV2Router02(0x4A7b5Da61326A6379179b40d00F57E5bbDC962c2);
+    address public constant UNISWAP_V2_FACTORY = 0x0c3c1c532F1e39EdF36BE9Fe0bE1410313E074Bf;
+
+    // --- Optimism L2 Configuration ---
+    address public constant SEQUENCER_UPTIME_FEED = 0x371EAD81c9102C9BF4874A9075FFFf170F2Ee389;
+
+    address public constant WETH9 = 0x4200000000000000000000000000000000000006;
+    address public constant DXN_WETH_POOL = 0x625Dd1efE8A6cc24a02aa94d51ceE99DB3d3b5aA;
+    address public constant XEN_WETH_POOL = 0xFDf64C32F4A03923547e6061911483b793e8d7E2;
+    address public constant DEAD = 0x000000000000000000000000000000000000dEaD;
+
+    address public rewardsProcessor;
+
+    uint256 private constant BASIS_POINTS = 10000;
+    uint256 private constant ETH_TO_SWAP_FOR_DXN_BPS   = 7000;
+    uint256 private constant ETH_TO_STAKING_VAULT_BPS  = 1500;
+    uint256 private constant ETH_TO_SWAP_FOR_XEN_BPS   = 1500;
+    uint256 private constant DXN_BURN_BPS              = 1000;
+    uint256 private constant DXN_TO_STAKE_BPS          = 3500;
+
+    uint256 public slippageBps = 500; // 5%
+
+    uint24  private constant DXN_WETH_POOL_FEE         = 10000;
+    uint24  private constant XEN_WETH_POOL_FEE         = 10000;
+
+    uint256 public immutable MINTABLE_SUPPLY_FOR_DEPOSIT;
+    uint256 public immutable TIER_SIZE;
+    uint256 public constant BASE_DEPOSIT_RATE = 1 ether;
+    uint256 private constant TIER_COUNT = 3;
+
+    // --- State-controlling storage variables ---
+    uint256 public nxdMintedViaDeposit;
+    uint256 public totalDXNStaked;
+    uint256 public totalDXNBurned;
+
+    function _governance() internal view returns (address) {
+        return NXDv3ERC20(address(nxd)).governance();
+    }
+
+    modifier onlyGovernance() {
+        if (msg.sender != _governance()) revert NotAuthorized();
+        _;
+    }
+
+    constructor(
+        uint256 initialSupply,
+        address _initialSupplyTo,
+        address _dbxen,
+        address _dbxenViews,
+        address _v3Oracle,
+        address _governanceAddr,
+        bytes32 salt
+    ) {
+        dbxen = IDBXen(_dbxen);
+
+        bytes memory bytecode = abi.encodePacked(
+            type(NXDv3ERC20).creationCode,
+            abi.encode(initialSupply, _initialSupplyTo, _governanceAddr)
+        );
+
+        address tokenAddress;
+        assembly {
+            tokenAddress := create2(0, add(bytecode, 32), mload(bytecode), salt)
+        }
+        if (tokenAddress == address(0)) revert CallFailed();
+
+        if (uint160(tokenAddress) >= uint160(address(dxn))) {
+            revert InvalidAddress();
+        }
+
+        NXDv3ERC20 token = NXDv3ERC20(tokenAddress);
+        nxd = INXDv3Burnable(tokenAddress);
+
+        taxRecipient = TaxRecipientV3(address(token.taxRecipient()));
+
+        nxdStakingVault = new NXDv3StakingVault(IERC20(tokenAddress), xen, INXDv3Protocol(address(this)));
+
+        token.updateTaxWhitelist(address(nxdStakingVault), true, true);
+        dbxenViews = IDBXenViews(_dbxenViews);
+        v3Oracle = IV3Oracle(_v3Oracle);
+
+        MINTABLE_SUPPLY_FOR_DEPOSIT = token.maxSupply() - initialSupply;
+        TIER_SIZE = MINTABLE_SUPPLY_FOR_DEPOSIT / TIER_COUNT;
+
+        dxn.forceApprove(_dbxen, type(uint256).max);
+        dxn.forceApprove(address(UNISWAP_V2_ROUTER), type(uint256).max);
+    }
+
+    function createPool(uint256 nxdDesired, uint256 dxnDesired, address to, uint256 deadline)
+        external
+        returns (uint256 liquidity)
+    {
+        if (nxdDesired == 0 || dxnDesired == 0) revert InvalidAmount();
+        if (address(v2Oracle) != address(0)) revert PoolAlreadyCreated();
+
+        nxd.safeTransferFrom(msg.sender, address(this), nxdDesired);
+        dxn.safeTransferFrom(msg.sender, address(this), dxnDesired);
+        nxd.forceApprove(address(UNISWAP_V2_ROUTER), nxdDesired);
+
+        (uint256 amountA, uint256 amountB, uint256 liq) = UNISWAP_V2_ROUTER.addLiquidity(
+            address(nxd), address(dxn), nxdDesired, dxnDesired, 0, 0, to, deadline
+        );
+        liquidity = liq;
+
+        if (nxdDesired > amountA) {
+            nxd.safeTransfer(msg.sender, nxdDesired - amountA);
+        }
+        if (dxnDesired > amountB) {
+            dxn.safeTransfer(msg.sender, dxnDesired - amountB);
+        }
+
+        // Pass the Sequencer Uptime Feed address to the V2Oracle constructor
+        v2Oracle = new V2Oracle(UNISWAP_V2_FACTORY, address(nxd), address(dxn), SEQUENCER_UPTIME_FEED);
+
+        address uniswapV2Pair = IUniswapV2Factory(UNISWAP_V2_FACTORY).getPair(address(nxd), address(dxn));
+
+        // Release the pair from the tax on user token purchases
+        NXDv3ERC20(address(nxd)).updateTaxWhitelist(uniswapV2Pair, true, false);
+
+        // Set the oracle in TaxRecipient
+        taxRecipient.setV2Oracle(address(v2Oracle));
+
+        emit PoolCreated(uniswapV2Pair, nxdDesired, dxnDesired);
+    }
+
+    function currentRate() public view returns (uint256) {
+        uint256 mintedViaDeposit = nxdMintedViaDeposit;
+        if (mintedViaDeposit >= MINTABLE_SUPPLY_FOR_DEPOSIT) return 0;
+
+        uint256 currentTier = (mintedViaDeposit / TIER_SIZE) + 1;
+        if (currentTier > TIER_COUNT) {
+            currentTier = TIER_COUNT;
+        }
+        return _getRateForTier(currentTier);
+    }
+
+    function _getRateForTier(uint256 tier) internal pure returns (uint256) {
+        if (tier == 1) return BASE_DEPOSIT_RATE;
+        if (tier == 2) return (BASE_DEPOSIT_RATE * 10) / 11;
+        return (BASE_DEPOSIT_RATE * 100) / 121;
+    }
+
+    function _calculateDepositOutput(uint256 dxnAmount) internal view returns (uint256 totalNxdMinted, uint256 dxnConsumed) {
+        uint256 remainingDxn = dxnAmount;
+        uint256 mintedTracker = nxdMintedViaDeposit;
+        
+        for (uint256 i = 0; i < TIER_COUNT && remainingDxn > 0;) {
+            uint256 tierEnd = (i == TIER_COUNT - 1) ? MINTABLE_SUPPLY_FOR_DEPOSIT : (i + 1) * TIER_SIZE;
+            if (mintedTracker < tierEnd) {
+                uint256 tierCapacityNxd = tierEnd - mintedTracker;
+                uint256 rate = _getRateForTier(i + 1);
+                
+                uint256 dxnNeededForTier = (tierCapacityNxd * 1e18) / rate;
+                
+                if (remainingDxn >= dxnNeededForTier) {
+                    totalNxdMinted += tierCapacityNxd;
+                    dxnConsumed += dxnNeededForTier;
+                    remainingDxn -= dxnNeededForTier;
+                    mintedTracker = tierEnd;
+                } else {
+                    uint256 nxdFromThisTier = (remainingDxn * rate) / 1e18;
+                    if (nxdFromThisTier > 0) {
+                        totalNxdMinted += nxdFromThisTier;
+                        dxnConsumed += (nxdFromThisTier * 1e18 + rate - 1) / rate;
+                        mintedTracker += nxdFromThisTier;
+                    }
+                    remainingDxn = 0;
+                }
+            }
+            unchecked { ++i; }
+        }
+    }
+
+    function _calculateDxnForNxd(uint256 targetNxd) internal view returns (uint256 dxnRequired) {
+        uint256 remainingNxd = targetNxd;
+        uint256 mintedTracker = nxdMintedViaDeposit;
+        
+        for (uint256 i = 0; i < TIER_COUNT && remainingNxd > 0;) {
+            uint256 tierEnd = (i == TIER_COUNT - 1) ? MINTABLE_SUPPLY_FOR_DEPOSIT : (i + 1) * TIER_SIZE;
+            if (mintedTracker < tierEnd) {
+                uint256 tierCapacityNxd = tierEnd - mintedTracker;
+                uint256 rate = _getRateForTier(i + 1);
+                
+                uint256 nxdToMintInTier = remainingNxd >= tierCapacityNxd ? tierCapacityNxd : remainingNxd;
+                uint256 dxnForThisNxd = (nxdToMintInTier * 1e18 + rate - 1) / rate;
+                
+                dxnRequired += dxnForThisNxd;
+                remainingNxd -= nxdToMintInTier;
+                mintedTracker += nxdToMintInTier;
+            }
+            unchecked { ++i; }
+        }
+    }
+
+    function ourClaimableFees() public view returns (uint256) {
+        address target = address(dbxenViews);
+        if (target == address(0) || target.code.length == 0) {
+            return 0;
+        }
+
+        bytes memory payload = abi.encodeWithSelector(IDBXenViews.getUnclaimedFees.selector, address(this));
+        (bool success, bytes memory data) = target.staticcall(payload);
+
+        if (!success || data.length < 32) {
+            return 0;
+        }
+
+        return abi.decode(data, (uint256));
+    }
+
+    function deposit(uint256 _amount) external nonReentrant {
+        if (address(v2Oracle) == address(0)) revert NotInitialized();
+        if (_amount == 0) revert InvalidAmount();
+        
+        uint256 depositCapRemaining = MINTABLE_SUPPLY_FOR_DEPOSIT > nxdMintedViaDeposit ? MINTABLE_SUPPLY_FOR_DEPOSIT - nxdMintedViaDeposit : 0;
+        uint256 tokenCapRemaining = NXDv3ERC20(address(nxd)).maxSupply() - NXDv3ERC20(address(nxd)).totalMinted();
+        uint256 maxMintable = depositCapRemaining < tokenCapRemaining ? depositCapRemaining : tokenCapRemaining;
+
+        if (maxMintable == 0) revert NXDMaxSupplyMinted();
+
+        (uint256 amountReceived, uint256 dxnConsumed) = _calculateDepositOutput(_amount);
+
+        if (amountReceived == 0) revert GotNothing();
+
+        if (amountReceived > maxMintable) {
+            amountReceived = maxMintable;
+            dxnConsumed = _calculateDxnForNxd(amountReceived);
+        }
+
+        nxdMintedViaDeposit += amountReceived;
+        _transferFromAndStake(dxnConsumed);
+        NXDv3ERC20(address(nxd)).mint(msg.sender, amountReceived);
+
+        collectFees();
+        emit Deposit(msg.sender, dxnConsumed, amountReceived);
+    }
+
+    function depositNoMint(uint256 _amount) external nonReentrant {
+        if (_amount == 0) revert InvalidAmount();
+        _transferFromAndStake(_amount);
+        emit Deposit(msg.sender, _amount, 0);
+
+        collectFees();
+    }
+
+    function _transferFromAndStake(uint256 _amount) internal {
+        dxn.safeTransferFrom(msg.sender, address(this), _amount);
+        dbxen.stake(_amount);
+        totalDXNStaked += _amount;
+    }
+
+    function collectFees() public {
+        if (ourClaimableFees() > 0) {
+            address target = address(dbxen);
+            if (target != address(0) && target.code.length > 0) {
+                bytes memory payload = abi.encodeWithSelector(IDBXen.claimFees.selector);
+                (bool success, ) = target.call(payload);
+                if (!success) revert CallFailed();
+            }
+        }
+    }
+
+    function _stakeDXN(uint256 amount) internal {
+        if (amount == 0) return;
+        dbxen.stake(amount);
+        totalDXNStaked += amount;
+        emit DXNStakedFromRewards(amount);
+    }
+
+    function setSlippageBps(uint256 _bps) external onlyGovernance {
+        if (_bps > 10000) revert InvalidAmount();
+        slippageBps = _bps;
+        emit SlippageBpsChanged(_bps);
+    }
+
+    function setSlippageBpsOnTax(uint256 _bps) external onlyGovernance {
+        if (_bps > 10000) revert InvalidAmount();
+        taxRecipient.setSlippageBps(uint16(_bps));
+        emit SlippageBpsOnTaxChanged(_bps);
+    }
+
+    function forceSweepOnTax() external onlyGovernance {
+        taxRecipient.forceSweep();
+        emit TaxForceSwept();
+    }
+
+    function setRewardsProcessor(address _newProcessor) external onlyGovernance {
+        if (_newProcessor == address(0)) revert InvalidAddress();
+        rewardsProcessor = _newProcessor;
+        emit RewardsProcessorUpdated(_newProcessor);
+    }
+
+    receive() external payable {}
+
+    function _checkRewardsCaller() internal view {
+        if (msg.sender != rewardsProcessor && msg.sender != _governance()) {
+            revert NotAuthorized();
+        }
+    }
+
+    function processRewards() external nonReentrant {
+        _checkRewardsCaller();
+        _executeProcessRewards(block.timestamp);
+    }
+
+    function processRewards(uint256 deadline) external nonReentrant {
+        _checkRewardsCaller();
+        if (block.timestamp > deadline) revert Expired();
+        _executeProcessRewards(deadline);
+    }
+
+    function _executeProcessRewards(uint256 deadline) internal {
+        if (nxdStakingVault.emergencyWithdrawEnabled()) revert VaultEmergencyWithdrawActive();
+
+        uint256 totalEth = address(this).balance;
+        if (totalEth == 0) revert NoRewards();
+
+        _handleRewards(totalEth, deadline);
+    }
+
+    function _handleRewards(uint256 ethToProcess, uint256 deadline) internal {
+        if (ethToProcess == 0) return;
+        if (address(v2Oracle) == address(0)) revert NotInitialized();
+
+        RewardsVars memory v;
+        v.ethToSwapForDXN    = (ethToProcess * ETH_TO_SWAP_FOR_DXN_BPS) / BASIS_POINTS;
+        v.ethToStakingVault  = (ethToProcess * ETH_TO_STAKING_VAULT_BPS) / BASIS_POINTS;
+        v.ethToSwapForXen    = (ethToProcess * ETH_TO_SWAP_FOR_XEN_BPS) / BASIS_POINTS;
+
+        // --- Step 1: ETH -> DXN ---
+        if (v.ethToSwapForDXN > 0) {
+            // Change the TWAP window to 10 minutes (matching MIN_SECONDS_AGO in V3OracleOptimism)
+            uint256 quote = v3Oracle.getHumanQuote(DXN_WETH_POOL, 10 minutes, 1 ether, WETH9, address(dxn));
+            uint256 minOut = (v.ethToSwapForDXN * quote) / 1e18;
+            minOut = (minOut * (BASIS_POINTS - slippageBps)) / BASIS_POINTS;
+
+            if (minOut > 0) {
+                v.dxnAmountReceivedFromSwap = UNISWAP_V3_ROUTER.exactInputSingle{value: v.ethToSwapForDXN}(
+                    ISwapRouter.ExactInputSingleParams(
+                        WETH9,
+                        address(dxn),
+                        DXN_WETH_POOL_FEE,
+                        address(this),
+                        deadline,
+                        v.ethToSwapForDXN,
+                        minOut,
+                        0
+                    )
+                );
+
+                v.dxnBurned = (v.dxnAmountReceivedFromSwap * DXN_BURN_BPS) / BASIS_POINTS;
+                v.dxnAddedToStake = (v.dxnAmountReceivedFromSwap * DXN_TO_STAKE_BPS) / BASIS_POINTS;
+
+                if (v.dxnBurned > 0) {
+                    totalDXNBurned += v.dxnBurned;
+                    dxn.safeTransfer(DEAD, v.dxnBurned);
+                }
+                if (v.dxnAddedToStake > 0) {
+                    _stakeDXN(v.dxnAddedToStake);
+                }
+            }
+        }
+
+        // --- Step 2: DXN -> NXD (Burn) ---
+        uint256 dxnBalanceToSwap = dxn.balanceOf(address(this));
+
+        if (dxnBalanceToSwap > 0) {
+            // Try to update the V2 oracle if the time has come
+            if (v2Oracle.canUpdate()) {
+                try v2Oracle.update() {} catch {}
+            }
+
+            // Safe check: the swap only happens when the oracle has a ready price
+            if (v2Oracle.initialized()) {
+                uint256 quote = v2Oracle.consult(address(dxn), dxnBalanceToSwap);
+                uint256 amountOutMin = quote > 0 ? (quote * (BASIS_POINTS - slippageBps)) / BASIS_POINTS : 0;
+
+                if (amountOutMin > 0) {
+                    address[] memory path = new address[](2);
+                    path[0] = address(dxn);
+                    path[1] = address(nxd);
+
+                    UNISWAP_V2_ROUTER.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+                        dxnBalanceToSwap,
+                        amountOutMin,
+                        path,
+                        address(this),
+                        deadline
+                    );
+                    
+                    uint256 nxdBalance = nxd.balanceOf(address(this));
+                    if (nxdBalance > 0) {
+                        nxd.burn(nxdBalance);
+                        v.nxdBoughtAndBurned = nxdBalance;
+                    }
+                }
+            }
+        }
+
+        // --- Step 3: ETH -> Staking Vault ---
+        if (v.ethToStakingVault > 0) {
+            (bool success, ) = address(nxdStakingVault).call{value: v.ethToStakingVault}("");
+            if (!success) revert SendETHFail();
+        }
+
+        // --- Step 4: ETH -> XEN ---
+        if (v.ethToSwapForXen > 0) {
+            // Change the TWAP window to 10 minutes (matching MIN_SECONDS_AGO in V3OracleOptimism)
+            uint256 quote = v3Oracle.getHumanQuote(XEN_WETH_POOL, 10 minutes, 1 ether, WETH9, address(xen));
+            uint256 minXenOut = (v.ethToSwapForXen * quote) / 1e18;
+            minXenOut = (minXenOut * (BASIS_POINTS - slippageBps)) / BASIS_POINTS;
+
+            if (minXenOut > 0) {
+                v.xenSent = UNISWAP_V3_ROUTER.exactInputSingle{value: v.ethToSwapForXen}(
+                    ISwapRouter.ExactInputSingleParams(
+                        WETH9,
+                        address(xen),
+                        XEN_WETH_POOL_FEE,
+                        address(nxdStakingVault),
+                        deadline,
+                        v.ethToSwapForXen,
+                        minXenOut,
+                        0
+                    )
+                );
+            }
+        }
+
+        if (v.ethToStakingVault > 0 || v.xenSent > 0) {
+            nxdStakingVault.updateVault();
+        }
+
+        emit HandleRewards(
+            ethToProcess,
+            v.dxnAmountReceivedFromSwap,
+            v.dxnBurned,
+            v.dxnAddedToStake,
+            v.nxdBoughtAndBurned,
+            v.ethToStakingVault,
+            v.ethToSwapForXen,
+            v.xenSent
+        );
+    }
+}

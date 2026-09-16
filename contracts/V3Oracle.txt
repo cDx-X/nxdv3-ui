@@ -1,0 +1,167 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "./libraries/OracleLibrary.sol";
+import "./libraries/TickMath.sol";
+
+/// @notice Minimal interface for the Chainlink L2 Sequencer Uptime Feed
+interface ISequencerUptimeFeed {
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
+}
+
+contract V3OracleOptimism {
+    // -----------------------------------------------------------------------
+    // Security constants and configuration
+    // -----------------------------------------------------------------------
+
+    /// @notice Minimum safe TWAP window for L2 (10 minutes = 600 seconds)
+    /// @dev Prevents cheap price manipulation over 1-2 blocks
+    uint32 public constant MIN_SECONDS_AGO = 600;
+
+    /// @notice Grace period after the sequencer resumes (1 hour = 3600 seconds)
+    /// @dev Gives arbitrageurs time to update Uniswap pools before the oracle unlocks
+    uint256 public constant GRACE_PERIOD_TIME = 3600;
+
+    /// @notice Chainlink Sequencer Uptime Feed contract
+    /// @dev Optimism Mainnet: 0x371E8c140Ed037A892E59971760f3CE3ba079535
+    ISequencerUptimeFeed public immutable sequencerUptimeFeed;
+
+    // -----------------------------------------------------------------------
+    // Custom errors (cheaper in gas than string requires)
+    // -----------------------------------------------------------------------
+
+    error SequencerDown();
+    error GracePeriodNotOver();
+    error SecondsAgoTooShort(uint32 provided, uint32 requiredMin);
+    error InvalidTokenPair(address baseToken, address quoteToken);
+
+    // -----------------------------------------------------------------------
+    // Constructor
+    // -----------------------------------------------------------------------
+
+    /// @param _sequencerUptimeFeed Address of the Chainlink Sequencer Uptime Feed for the network
+    /// (on testnets or in mocks you can pass address(0) to disable the check)
+    constructor(address _sequencerUptimeFeed) {
+        sequencerUptimeFeed = ISequencerUptimeFeed(_sequencerUptimeFeed);
+    }
+
+    // -----------------------------------------------------------------------
+    // Internal functions (validation)
+    // -----------------------------------------------------------------------
+
+    /// @dev Checks whether the Optimism sequencer is running and the post-outage grace period has passed
+    function _validateSequencer() internal view {
+        if (address(sequencerUptimeFeed) != address(0)) {
+            (, int256 answer, uint256 startedAt, , ) = sequencerUptimeFeed.latestRoundData();
+
+            // answer == 0 means the sequencer is working correctly; answer == 1 means an outage
+            if (answer != 0 || startedAt == 0) {
+                revert SequencerDown();
+            }
+
+            // Check whether the required market rebalancing time has passed since the sequencer restart
+            if (block.timestamp - startedAt < GRACE_PERIOD_TIME) {
+                revert GracePeriodNotOver();
+            }
+        }
+    }
+
+    /// @dev Verifies that the base and quote tokens actually form the given Uniswap V3 pool
+    function _validateTokens(
+        address uniswapV3Pool,
+        address baseToken,
+        address quoteToken
+    ) internal view {
+        address token0 = IUniswapV3Pool(uniswapV3Pool).token0();
+        address token1 = IUniswapV3Pool(uniswapV3Pool).token1();
+
+        bool isValid = (baseToken == token0 && quoteToken == token1) ||
+                       (baseToken == token1 && quoteToken == token0);
+
+        if (!isValid) {
+            revert InvalidTokenPair(baseToken, quoteToken);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Public / external functions
+    // -----------------------------------------------------------------------
+
+    /// @notice Returns a safe time-weighted mean tick (TWAP)
+    /// @param uniswapV3Pool Address of the Uniswap V3 pool
+    /// @param secondsAgo TWAP period in seconds (must be >= MIN_SECONDS_AGO)
+    function getTwapTick(address uniswapV3Pool, uint32 secondsAgo)
+        public
+        view
+        returns (int24 arithmeticMeanTick)
+    {
+        _validateSequencer();
+
+        if (secondsAgo < MIN_SECONDS_AGO) {
+            revert SecondsAgoTooShort(secondsAgo, MIN_SECONDS_AGO);
+        }
+
+        (arithmeticMeanTick, ) = OracleLibrary.consult(uniswapV3Pool, secondsAgo);
+    }
+
+    /// @notice Returns the sqrt price sqrtPriceX96 for a given TWAP
+    /// @param uniswapV3Pool Address of the Uniswap V3 pool
+    /// @param secondsAgo TWAP period in seconds
+    function getSqrtTwapX96(address uniswapV3Pool, uint32 secondsAgo)
+        external
+        view
+        returns (uint160 sqrtPriceX96)
+    {
+        int24 arithmeticMeanTick = getTwapTick(uniswapV3Pool, secondsAgo);
+        sqrtPriceX96 = TickMath.getSqrtRatioAtTick(arithmeticMeanTick);
+    }
+
+    /// @notice Returns the quote of `baseAmount` of the `baseToken` expressed in `quoteToken`
+    /// @param uniswapV3Pool Address of the Uniswap V3 pool
+    /// @param secondsAgo TWAP period in seconds
+    /// @param baseAmount Amount of the base token (taking its decimals into account)
+    /// @param baseToken Address of the token being quoted
+    /// @param quoteToken Address of the token used for the quote
+    function getHumanQuote(
+        address uniswapV3Pool,
+        uint32 secondsAgo,
+        uint128 baseAmount,
+        address baseToken,
+        address quoteToken
+    ) external view returns (uint256 quoteAmount) {
+        // 1. Validate that the tokens match the given pool
+        _validateTokens(uniswapV3Pool, baseToken, quoteToken);
+
+        // 2. Fetch the averaged tick (with sequencer and time-window validation)
+        int24 arithmeticMeanTick = getTwapTick(uniswapV3Pool, secondsAgo);
+
+        // 3. Calculate the amount using Uniswap's battle-tested library
+        quoteAmount = OracleLibrary.getQuoteAtTick(
+            arithmeticMeanTick,
+            baseAmount,
+            baseToken,
+            quoteToken
+        );
+    }
+
+    /// @notice Helper function: prepares the pool to store history for TWAP
+    /// @dev Uniswap pools store only 1 entry by default. To avoid the 'OLD' error, increase the capacity.
+    /// @param uniswapV3Pool Address of the Uniswap V3 pool
+    /// @param minCardinality Minimum number of observation slots (e.g. 50-100 for long periods)
+    function ensureCardinality(address uniswapV3Pool, uint16 minCardinality) external {
+        (, , , , uint16 observationCardinalityNext, , ) = IUniswapV3Pool(uniswapV3Pool).slot0();
+        if (observationCardinalityNext < minCardinality) {
+            IUniswapV3Pool(uniswapV3Pool).increaseObservationCardinalityNext(minCardinality);
+        }
+    }
+}

@@ -1,0 +1,220 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+import "./uniswapv2/libraries/FixedPoint.sol";
+import "./interfaces/IUniswapV2Factory.sol";
+
+/// @notice Minimal interface for the Chainlink L2 Sequencer Uptime Feed
+interface ISequencerUptimeFeed {
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
+}
+
+interface IUniswapV2PairLocal {
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    function price0CumulativeLast() external view returns (uint256);
+    function price1CumulativeLast() external view returns (uint256);
+}
+
+library UniswapV2OracleLibrary {
+    using FixedPoint for *;
+
+    function currentBlockTimestamp() internal view returns (uint32) {
+        return uint32(block.timestamp % 2 ** 32);
+    }
+
+    function currentCumulativePrices(address pair)
+        internal
+        view
+        returns (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp)
+    {
+        blockTimestamp = currentBlockTimestamp();
+        price0Cumulative = IUniswapV2PairLocal(pair).price0CumulativeLast();
+        price1Cumulative = IUniswapV2PairLocal(pair).price1CumulativeLast();
+
+        (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = IUniswapV2PairLocal(pair).getReserves();
+        if (blockTimestampLast != blockTimestamp) {
+            unchecked {
+                uint32 timeElapsed = blockTimestamp - blockTimestampLast;
+                price0Cumulative += uint256(FixedPoint.fraction(reserve1, reserve0)._x) * timeElapsed;
+                price1Cumulative += uint256(FixedPoint.fraction(reserve0, reserve1)._x) * timeElapsed;
+            }
+        }
+    }
+}
+
+contract V2Oracle {
+    using FixedPoint for *;
+
+    // -----------------------------------------------------------------------
+    // Security constants and configuration
+    // -----------------------------------------------------------------------
+
+    /// @notice TWAP window – 30 minutes (safer on L2 than 5 minutes)
+    uint256 public constant PERIOD = 30 minutes;
+
+    /// @notice Maximum allowable price age (2 hours)
+    uint256 public constant MAX_AGE = 2 hours;
+
+    /// @notice Grace period after an Optimism sequencer restart (1 hour)
+    uint256 public constant GRACE_PERIOD_TIME = 3600;
+
+    /// @notice Chainlink sequencer status feed (OP Mainnet: 0x371E8c140Ed037A892E59971760f3CE3ba079535)
+    ISequencerUptimeFeed public immutable sequencerUptimeFeed;
+
+    IUniswapV2PairLocal public immutable pair;
+    address public immutable token0;
+    address public immutable token1;
+
+    uint256 public price0CumulativeLast;
+    uint256 public price1CumulativeLast;
+    uint32 public blockTimestampLast;
+    FixedPoint.uq112x112 public price0Average;
+    FixedPoint.uq112x112 public price1Average;
+
+    /// @notice Flag indicating whether at least one successful update() calculation has occurred
+    bool public initialized;
+
+    // -----------------------------------------------------------------------
+    // Custom errors
+    // -----------------------------------------------------------------------
+
+    error StalePrice();
+    error NotInitialized();
+    error PeriodNotElapsed();
+    error NoReserves();
+    error InvalidToken();
+    error PairDoesNotExist();
+    error SequencerDown();
+    error GracePeriodNotOver();
+    error SequencerRestartedResetBaseline();
+
+    constructor(address factory, address tokenA, address tokenB, address _sequencerUptimeFeed) {
+        address _pairAddress = IUniswapV2Factory(factory).getPair(tokenA, tokenB);
+        if (_pairAddress == address(0)) revert PairDoesNotExist();
+
+        pair = IUniswapV2PairLocal(_pairAddress);
+        token0 = pair.token0();
+        token1 = pair.token1();
+
+        price0CumulativeLast = pair.price0CumulativeLast();
+        price1CumulativeLast = pair.price1CumulativeLast();
+
+        uint112 reserve0;
+        uint112 reserve1;
+        (reserve0, reserve1, blockTimestampLast) = pair.getReserves();
+        if (reserve0 == 0 || reserve1 == 0) revert NoReserves();
+
+        sequencerUptimeFeed = ISequencerUptimeFeed(_sequencerUptimeFeed);
+    }
+
+    // -----------------------------------------------------------------------
+    // L2 sequencer validation
+    // -----------------------------------------------------------------------
+
+    /// @dev Verifies the Optimism sequencer is working and returns the timestamp of its last restart
+    function _validateSequencer() internal view returns (uint256 startedAt) {
+        if (address(sequencerUptimeFeed) != address(0)) {
+            (, int256 answer, uint256 _startedAt, , ) = sequencerUptimeFeed.latestRoundData();
+
+            // answer == 0: sequencer is up, answer == 1: sequencer is down
+            if (answer != 0 || _startedAt == 0) revert SequencerDown();
+
+            // Grace period for arbitrage after an outage
+            if (block.timestamp - _startedAt < GRACE_PERIOD_TIME) revert GracePeriodNotOver();
+
+            return _startedAt;
+        }
+        return 0;
+    }
+
+    // -----------------------------------------------------------------------
+    // Price update and read functions
+    // -----------------------------------------------------------------------
+
+    /// @notice Tells the bot/keeper whether update() can be called
+    function canUpdate() external view returns (bool) {
+        if (address(sequencerUptimeFeed) != address(0)) {
+            (, int256 answer, uint256 startedAt, , ) = sequencerUptimeFeed.latestRoundData();
+            if (answer != 0 || startedAt == 0 || block.timestamp - startedAt < GRACE_PERIOD_TIME) {
+                return false;
+            }
+            // If the sequencer came back up after our last measurement, a baseline reset is required
+            if (blockTimestampLast < startedAt) {
+                return true; 
+            }
+        }
+
+        uint32 blockTimestamp = UniswapV2OracleLibrary.currentBlockTimestamp();
+        uint32 timeElapsed;
+        unchecked {
+            timeElapsed = blockTimestamp - blockTimestampLast;
+        }
+        return timeElapsed >= PERIOD;
+    }
+
+    /// @notice Computes and stores the time-weighted average price for the PERIOD
+    function update() external {
+        uint256 sequencerRestartedAt = _validateSequencer();
+
+        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) =
+            UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
+
+        // If the sequencer restarted after our last measurement, outage-period data
+        // would contain frozen prices. We reset the starting point and require a new PERIOD.
+        if (sequencerRestartedAt > 0 && blockTimestampLast < sequencerRestartedAt) {
+            price0CumulativeLast = price0Cumulative;
+            price1CumulativeLast = price1Cumulative;
+            blockTimestampLast = blockTimestamp;
+            revert SequencerRestartedResetBaseline();
+        }
+
+        uint32 timeElapsed;
+        unchecked {
+            timeElapsed = blockTimestamp - blockTimestampLast;
+        }
+
+        if (timeElapsed < PERIOD) revert PeriodNotElapsed();
+
+        unchecked {
+            price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - price0CumulativeLast) / timeElapsed));
+            price1Average = FixedPoint.uq112x112(uint224((price1Cumulative - price1CumulativeLast) / timeElapsed));
+        }
+
+        price0CumulativeLast = price0Cumulative;
+        price1CumulativeLast = price1Cumulative;
+        blockTimestampLast = blockTimestamp;
+
+        // Mark the oracle as initialized after the first correct average calculation
+        if (!initialized) {
+            initialized = true;
+        }
+    }
+
+    /// @notice Returns the quote for an input token amount (TWAP)
+    function consult(address token, uint256 amountIn) external view returns (uint256 amountOut) {
+        _validateSequencer();
+
+        // Security: lock reads before the first successful update() and when the price is stale
+        if (!initialized) revert NotInitialized();
+        if (block.timestamp - blockTimestampLast > MAX_AGE) revert StalePrice();
+
+        if (token == token0) {
+            amountOut = price0Average.mul(amountIn).decode144();
+        } else if (token == token1) {
+            amountOut = price1Average.mul(amountIn).decode144();
+        } else {
+            revert InvalidToken();
+        }
+    }
+}
