@@ -24,20 +24,20 @@ export const WhyPart4: React.FC = () => {
             }}
           >
             <li>
-              <strong>Mathematical Architecture:</strong> Deprecated MasterChef looping structure
-              for an O(1) discrete accumulator model (`1e18` precision).
+              <strong>Dual-Reward Linear Streaming:</strong> Replaced MasterChef looping structure
+              with a continuous 7-day linear streaming engine for both ETH and XEN (`1e18` precision).
             </li>
             <li>
-              <strong>Zero-Staker Edge Case:</strong> `unallocatedRewards` buffer automatically
-              assigns incoming ETH during zero-stake to the first subsequent staker.
+              <strong>Zero-Staker Edge Case:</strong> `unallocatedRewardsETH` & `unallocatedRewardsXEN` buffers
+              automatically roll incoming rewards into the next 7-day streaming cycle once staking resumes.
             </li>
             <li>
-              <strong>Decoupled Accounting:</strong> Segregated balances into `accruedETH` with
-              explicit `claimRewards()`.
+              <strong>Decoupled Accounting:</strong> Realizes rewards into `accruedETH` and `accruedXEN` with
+              explicit `claimRewards()`, `claimETH()`, and `claimXEN()`.
             </li>
             <li>
-              <strong>Emergency Withdrawals:</strong> Forfeited unharvested rewards are dynamically
-              redistributed to remaining active stakers.
+              <strong>In-Place Freezing Emergency Mode:</strong> Streams pause safely; exiting users withdraw
+              100% principal (staked + pending cooldown) with ZERO penalty and claim all accrued rewards.
             </li>
           </ul>
         </div>
@@ -73,7 +73,7 @@ export const WhyPart4: React.FC = () => {
                   Multi-pool MasterChef pattern (<code>1e12</code> precision)
                 </td>
                 <td style={{ padding: '10px' }}>
-                  Single-pool discrete reward index O(1) (<code>1e18</code> precision)
+                  Dual-reward 7-day linear streaming engine (ETH + XEN, <code>1e18</code> precision)
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -82,7 +82,7 @@ export const WhyPart4: React.FC = () => {
                 </td>
                 <td style={{ padding: '10px' }}>ETH unassigned/trapped</td>
                 <td style={{ padding: '10px' }}>
-                  <code>unallocatedRewards</code> buffer credits first subsequent staker
+                  <code>unallocatedRewardsETH</code> / <code>XEN</code> automatically roll into next stream
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -100,7 +100,7 @@ export const WhyPart4: React.FC = () => {
                 </td>
                 <td style={{ padding: '10px' }}>Auto-claimed during staking actions</td>
                 <td style={{ padding: '10px' }}>
-                  Tracks realized earnings in <code>accruedETH</code> + <code>claimRewards()</code>
+                  Decoupled into <code>claimRewards()</code>, <code>claimETH()</code>, and <code>claimXEN()</code>
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -120,7 +120,7 @@ export const WhyPart4: React.FC = () => {
                 </td>
                 <td style={{ padding: '10px' }}>Forfeited rewards trapped</td>
                 <td style={{ padding: '10px' }}>
-                  Forfeited ETH <strong>redistributed to remaining stakers</strong>
+                  Streams pause; 100% principal (staked + cooldown) + accrued rewards paid with <strong>0% penalty</strong>
                 </td>
               </tr>
             </tbody>

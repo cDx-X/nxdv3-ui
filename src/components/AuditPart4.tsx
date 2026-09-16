@@ -55,9 +55,16 @@ export const AuditPart4: React.FC = () => {
                 <td style={{ padding: '8px', fontWeight: 500 }}>MEV / Sandwich Exploitation</td>
                 <td style={{ padding: '8px', color: '#10b981', fontWeight: 600 }}>SECURED</td>
                 <td style={{ padding: '8px' }}>
-                  Uniswap V3 operations use 5-minute TWAP queries (v3Oracle.getHumanQuote). Uniswap
-                  V2 swaps query cumulative time-weighted reserves (v2Oracle.consult). Swaps enforce
-                  minimum output thresholds parameterized by governance-controlled slippage tolerances.
+                  Uniswap V3 operations use 10-minute TWAP queries (<code>MIN_SECONDS_AGO = 600</code>, <code>v3Oracle.getHumanQuote</code>). Uniswap
+                  V2 swaps query 30-minute cumulative time-weighted reserves (<code>PERIOD = 30 minutes</code>, <code>v2Oracle.consult</code>). Swaps enforce
+                  minimum output thresholds parameterized by governance-controlled slippage tolerances (<code>slippageBps</code>).
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <td style={{ padding: '8px', fontWeight: 500 }}>L2 Sequencer Downtime & Stale Prices</td>
+                <td style={{ padding: '8px', color: '#10b981', fontWeight: 600 }}>SECURED</td>
+                <td style={{ padding: '8px' }}>
+                  Both V2Oracle and V3Oracle integrate Chainlink's L2 Sequencer Uptime Feed with a mandatory 1-hour grace period (<code>GRACE_PERIOD_TIME = 3600s</code>) after any sequencer restart, preventing trades at stale prices before arbitrageurs rebalance pools. V2Oracle additionally enforces a 2-hour maximum price age limit (<code>MAX_AGE = 2 hours</code>).
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>

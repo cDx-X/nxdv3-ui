@@ -310,11 +310,13 @@ export const AuditPart2: React.FC = () => {
                   }}
                 >
                   <li>
-                    <strong>Deposit Ceiling</strong>: 90 NXD total per wallet. Excess DXN is never
-                    consumed.
+                    <strong>Deposit Ceiling</strong>: Protocol-wide deposit minting supply (<code>MINTABLE_SUPPLY_FOR_DEPOSIT = maxSupply - initialSupply</code>, up to 120,000 NXD). No artificial per-wallet limit; excess DXN is never consumed.
                   </li>
                   <li>
                     <strong>Tiered Pricing</strong>:
+                    <p style={{ marginTop: '0.2rem', marginBottom: '0.2rem' }}>
+                      Priced across 3 equal tiers (<code>TIER_SIZE = MINTABLE_SUPPLY_FOR_DEPOSIT / 3</code>):
+                    </p>
                     <ul
                       style={{
                         paddingLeft: '1.25rem',
@@ -326,13 +328,13 @@ export const AuditPart2: React.FC = () => {
                       }}
                     >
                       <li>
-                        <strong>Tier 1 (0 – 30 NXD)</strong>: 1 DXN → 1.000 NXD (1:1)
+                        <strong>Tier 1 (First 1/3 of deposit supply)</strong>: 1 DXN → 1.000 NXD (1:1 / <code>BASE_DEPOSIT_RATE</code>)
                       </li>
                       <li>
-                        <strong>Tier 2 (30 – 60 NXD)</strong>: 1 DXN → 0.909 NXD (10/11)
+                        <strong>Tier 2 (Second 1/3 of deposit supply)</strong>: 1 DXN → 0.909 NXD (10/11)
                       </li>
                       <li>
-                        <strong>Tier 3 (60 – 90 NXD)</strong>: 1 DXN → 0.826 NXD (100/121)
+                        <strong>Tier 3 (Final 1/3 of deposit supply)</strong>: 1 DXN → 0.826 NXD (100/121)
                       </li>
                     </ul>
                   </li>
@@ -422,16 +424,14 @@ export const AuditPart2: React.FC = () => {
               }}
             >
               <li>
-                <strong>Discrete Index Reward Algorithm</strong>:
+                <strong>Dual-Reward Continuous Linear Streaming Engine (Synthetix-Style)</strong>:
                 <p style={{ marginTop: '0.25rem' }}>
-                  Utilizes <code>accEthPerShare</code> with 18 decimal precision (
-                  <code>PRECISION = 1e18</code>), guaranteeing constant gas cost regardless of total
-                  stakers.
+                  Distributes dual rewards (<strong>ETH</strong> and <strong>XEN</strong>) over rolling 7-day cycles (<code>REWARD_DURATION = 7 days</code>) using continuous emission rates (<code>rewardRateETH</code>, <code>rewardRateXEN</code>) synchronized with high-precision share indices (<code>accEthPerShare</code>, <code>accXenPerShare</code> with <code>PRECISION = 1e18</code>). Guarantees constant O(1) gas cost regardless of total stakers.
                 </p>
               </li>
               <li>
                 <strong>
-                  Zero-Staker Buffer Protection (<code>unallocatedRewards</code>)
+                  Zero-Staker Buffer Protection (<code>unallocatedRewardsETH</code> & <code>unallocatedRewardsXEN</code>)
                 </strong>
                 :
                 <ul
@@ -445,15 +445,18 @@ export const AuditPart2: React.FC = () => {
                   }}
                 >
                   <li>
-                    If ETH rewards arrive while <code>totalStaked == 0</code>, the ETH is captured in{' '}
-                    <code>unallocatedRewards</code>.
+                    If ETH or XEN rewards arrive while <code>totalStaked == 0</code>, the incoming assets are captured in <code>unallocatedRewardsETH</code> and <code>unallocatedRewardsXEN</code>.
                   </li>
                   <li>
-                    As soon as a staker enters or active stake exists, <code>unallocatedRewards</code>{' '}
-                    is credited into <code>accEthPerShare</code> or <code>user.accruedETH</code>,
-                    preventing any stuck or lost ETH.
+                    As soon as active staking begins or resumes, buffered rewards are automatically rolled into the next 7-day streaming cycle, eliminating any locked, stuck, or diluted rewards.
                   </li>
                 </ul>
+              </li>
+              <li>
+                <strong>Independent Reward Claiming</strong>:
+                <p style={{ marginTop: '0.25rem' }}>
+                  Stakers can claim rewards independently via <code>claimRewards()</code> (both ETH & XEN), <code>claimETH()</code>, or <code>claimXEN()</code>, or route payouts to any external recipient address via <code>claimRewardsTo</code>, <code>claimETHTo</code>, and <code>claimXENTo</code>.
+                </p>
               </li>
               <li>
                 <strong>Withdrawals & 24h Cooldown Management</strong>:
@@ -471,32 +474,23 @@ export const AuditPart2: React.FC = () => {
                     <strong>
                       Instant with Penalty (<code>acceptsPenalty = true</code>)
                     </strong>
-                    : User receives 75% of requested NXD; 25% is burned immediately (
-                    <code>nxdPenaltyBurned</code>).
+                    : User receives 75% of requested NXD; 25% is burned physically to permanently decrement supply (<code>nxdPenaltyBurned</code>).
                   </li>
                   <li>
                     <strong>
                       Standard Cooldown (<code>acceptsPenalty = false</code>)
                     </strong>
-                    : Schedules a withdrawal with <code>WITHDRAWAL_COOLDOWN = 1 days</code>.
+                    : Queues withdrawal with <code>WITHDRAWAL_COOLDOWN = 1 days</code> via <code>withdrawalRequests[msg.sender]</code>. Staked balance is deducted immediately upon scheduling, and tokens are safely collected after 24 hours via <code>withdrawCooldown()</code>.
                   </li>
                   <li>
-                    Stakers continue earning ETH rewards on their full staked balance during the 24h
-                    cooldown period until finalized via <code>withdrawCooldown</code> or{' '}
-                    <code>withdraw</code>.
-                  </li>
-                  <li>
-                    Over-withdrawal protection: strictly verifies{' '}
-                    <code>user.amount &gt;= pendingAmount + _amount + lockedInCooldown</code>.
+                    Guard against concurrent cooldown abuse: only one withdrawal request can be pending at a time (<code>revert Cooldown()</code>).
                   </li>
                 </ul>
               </li>
               <li>
-                <strong>Emergency Withdraw</strong>:
+                <strong>In-Place Freezing Emergency Mode (<code>emergencyWithdraw</code>)</strong>:
                 <p style={{ marginTop: '0.25rem' }}>
-                  Governance-enabled safeguard. When triggered, the vault freezes all new stakes and
-                  allows users to exit without penalties. Unallocated rewards are redistributed back
-                  into the vault for remaining stakers.
+                  Governance-activated safeguard. When enabled (<code>emergencyWithdrawEnabled = true</code>), active reward emission streams are safely paused (<code>_pauseEthStream</code>, <code>_pauseXenStream</code>) locking unallocated rewards in the contract. Users can exit immediately with <strong>100% of their principal (both staked NXD and any pending cooldown requests) with ZERO penalty</strong>, while simultaneously receiving all accrued ETH and XEN rewards.
                 </p>
               </li>
             </ul>

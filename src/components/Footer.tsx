@@ -105,7 +105,7 @@ export const Footer: React.FC = () => {
                   <span>Litepaper</span>
                 </button>
               </li>
-              {/* <li>
+              <li>
                 <button
                   onClick={() => setIsWhyOpen(true)}
                   className="footer-link-item"
@@ -123,7 +123,7 @@ export const Footer: React.FC = () => {
                   <HelpCircle size={14} />
                   <span>Why v3?</span>
                 </button>
-              </li> */}
+              </li>
               {resources.map((res, idx) => (
                 <li key={idx}>
                   <a
@@ -217,7 +217,7 @@ export const Footer: React.FC = () => {
       <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
       <AuditModal isOpen={isAuditOpen} onClose={() => setIsAuditOpen(false)} />
       <HowItWorksModal isOpen={isHowItWorksOpen} onClose={() => setIsHowItWorksOpen(false)} />
-      {/* <WhyModal isOpen={isWhyOpen} onClose={() => setIsWhyOpen(false)} /> */}
+      <WhyModal isOpen={isWhyOpen} onClose={() => setIsWhyOpen(false)} />
     </>
   );
 };

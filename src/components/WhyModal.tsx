@@ -75,7 +75,7 @@ This document provides a complete architectural, cryptographic, economic, and se
 | **Cross-Chain / Migration** | \`migrationContract\` & \`bridgeMint()\` hooks | **Completely Removed** |
 | **ETH Reward Processing Lifecycle** | Triggered synchronously inside \`receive() external payable\` | Buffer ETH in \`receive()\`; processed asynchronously via \`processRewards()\` / \`processRewards(deadline)\` |
 | **ETH Reward Distribution Breakdown** | • 5% to \`devFeeTo\`<br>• 42.5% to Buy & Burn NXD (Uniswap V2)<br>• 25.5% to Buy & Stake DXN<br>• 15.0% to NXD Staking Vault (ETH)<br>• 4.25% to Buy & Burn DXN | • **70% to DXN Swap (Uniswap V3)**:<br>&nbsp;&nbsp;↳ 10% burned to \`DEAD\`<br>&nbsp;&nbsp;↳ 35% staked into DBXen (\`totalDXNStaked\`)<br>&nbsp;&nbsp;↳ 55% swapped for NXD via Uniswap V2 and **physically burned** via \`nxd.burn()\`<br>• **15% sent to NXD Staking Vault as ETH**<br>• **15% swapped to XEN (Uniswap V3)** and streamed to NXD Staking Vault |
-| **Slippage Protection** | Hardcoded 3% tolerance across swaps | Configurable \`slippageBps\` (default 5% / 500 bps) verified against V3 Oracle TWAP & V2 Oracle TWAP |
+| **Slippage Protection** | Hardcoded 3% tolerance across swaps | Configurable \`slippageBps\` (default 5% / 500 bps) verified against V3 Oracle (10-minute TWAP) & V2 Oracle (30-minute TWAP) with Chainlink L2 Sequencer Uptime Feed protection |
 | **LP Creation** | Keeps dust in contract | **Refunds unused NXD and DXN balances** back to the deployer |
 | **Access Control on Rewards** | Public (anyone could trigger on \`receive\`) | Restricted to \`rewardsProcessor\` and \`governance\` (\`_checkRewardsCaller()\`) |
 
@@ -205,6 +205,7 @@ The 3.5% sent to TaxRecipientV3 is further split:
 8. **Automated Leftover Sweep**: Self-cleaning routine that stakes residual DXN dust every 100 executions.
 9. **Front-End Analytics & Charting Views**: High-granularity 7-day epoch tracking for burns (\`epochBurned\`) and vault inflows (\`ethInflowByEpoch\`, \`xenInflowByEpoch\`).
 10. **Deterministic CREATE2 Token Deployment**: Guarantees \`NXD < DXN\` numerical address sorting on EVM for consistent Uniswap V2 LP pairing.
+11. **L2 Sequencer & Oracle Downtime Shield**: Chainlink L2 Sequencer Uptime Feed integration with an enforced 1-hour grace period and 2-hour max price age, guarding protocol swaps from sequencer crash exploits.
 
 ---
 
@@ -216,6 +217,7 @@ The NXDv3 architecture resolves all primary security risks, economic vulnerabili
 2. **Zero Risk of Out-of-Gas Transfer Failures**: Standard ERC-20 transfers execute strictly local storage updates, guaranteeing low, predictable gas costs and preventing transfer reverts caused by third-party DEX pool volatility or gas spikes.
 3. **Pure Decentralization & Value Accrual**: By reducing developer cuts to **absolute zero** (0% mints, 0% taxes, 0% yield cuts), 100% of economic throughput is programmatically directed to deflationary buybacks (NXD/DXN burns), deep protocol-owned liquidity (POL), and continuous yields (ETH + XEN) for stakers.
 4. **Resilient Capital Protection**: The vault's in-place freezing model guarantees that unforeseen black swan events pause distributions without risking staker deposits or trapping user assets.
+5. **L2 Sequencer Downtime Resilience**: Dedicated Chainlink Sequencer Uptime Feed integration prevents trades during or immediately after L2 sequencer outages, ensuring arbitrageurs have sufficient grace period to re-align liquidity pool prices before contract executions resume.
 
 
 `;
