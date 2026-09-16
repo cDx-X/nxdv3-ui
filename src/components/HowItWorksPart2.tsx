@@ -20,7 +20,7 @@ export const HowItWorksPart2: React.FC = () => (
       </p>
       <ul>
         <li> 
-          <strong>30% of the tax</strong>is burned immediately
+          <strong>30% of the tax</strong> is burned immediately
         </li>
       </ul>
         ,while the remaining 70% is transferred directly to TaxRecipientV3 
