@@ -140,31 +140,32 @@ This document provides a complete architectural, cryptographic, economic, and se
 
 ### 6.1 Transfer Tax Flow (5% Flat)
 
-**Step 1: User Transfer (100%)**
+#### Step 1: User Transfer (100%)
 - **95.0%** → Recipient
 - **5.0%** → Tax Split (in \`NXDv3ERC20._update\`)
 
-**Step 2: Tax Distribution (5.0% of transfer)**
+#### Step 2: Tax Distribution (5.0% of transfer)
 - **30% of tax (1.5% of transfer)** → Burned to \`address(0)\` (permanent deflation)
 - **70% of tax (3.5% of transfer)** → Transferred to \`TaxRecipientV3\`
 
-**Step 3: Asynchronous Processing via \`processTax()\`**
-
+#### Step 3: Asynchronous Processing via \`processTax()\`
 The 3.5% sent to TaxRecipientV3 is further split:
 - **4/7 of NXD (2.0% of transfer)** → Swapped to DXN via Uniswap V2
   - **25% of DXN (0.5% transfer equiv.)** → Staked into DBXen (\`depositNoMint()\`)
   - **75% of DXN (1.5% transfer equiv.)** → Added to Uniswap V2 LP (NXD/DXN pair)
   - *Note: Leftover DXN is swept to DBXen every 100 runs*
 
+---
+
 ### 6.2 Protocol Reward Distribution Flow (Incoming ETH)
 
-**Step 1: ETH Receipt**
+#### Step 1: ETH Receipt
 - DBXen Claim Fees / Incoming ETH → \`NXDv3Protocol.receive()\` (ETH buffered)
 
-**Step 2: Processing via \`processRewards()\`**
+#### Step 2: Processing via \`processRewards()\`
 - Invoked by \`rewardsProcessor\` or governance
 
-**Step 3: ETH Distribution (100% of incoming ETH)**
+#### Step 3: ETH Distribution (100% of incoming ETH)
 
 | Allocation | Destination | Action |
 |------------|-------------|--------|
@@ -172,7 +173,7 @@ The 3.5% sent to TaxRecipientV3 is further split:
 | **15% ETH** | NXDv3StakingVault | 7-day linear stream (direct ETH) |
 | **15% ETH** | Swap to XEN (Uniswap V3) → NXDv3StakingVault | 7-day linear stream (XEN) |
 
-**Step 4: DXN Distribution (from 70% ETH swap)**
+#### Step 4: DXN Distribution (from 70% ETH swap)
 
 | Allocation | Destination |
 |------------|-------------|
@@ -180,7 +181,11 @@ The 3.5% sent to TaxRecipientV3 is further split:
 | **35% of DXN** | Staked into DBXen (\`totalDXNStaked\`) |
 | **55% of DXN** | Swapped for NXD (Uniswap V2) → Burned via \`nxd.burn()\` |
 
-**Final Step:** Both streams (ETH + XEN) synchronized via \`nxdStakingVault.updateVault()\`
+#### Final Synchronization
+Both streams (ETH + XEN) synchronized via \`nxdStakingVault.updateVault()\`.
+
+---
+
 ## 7. Summary of Changes: Removed vs. Added
 
 ### Removed in NXDv3
@@ -251,21 +256,169 @@ export const WhyModal: React.FC<WhyModalProps> = ({ isOpen, onClose }) => {
             color: 'var(--text-secondary)',
           }}
         >
-          <div className="markdown-body">
+          <div className="why-markdown-body">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
               components={{
-                table: ({ node, ...props }) => (
-                  <table
+                h1: ({ node, ...props }) => (
+                  <h1
                     {...props}
                     style={{
-                      width: '100%',
-                      borderCollapse: 'collapse',
-                      border: '1px solid var(--border-color)',
+                      fontSize: '1.35rem',
+                      fontWeight: 700,
+                      color: 'var(--accent-gold)',
+                      marginTop: '0.25rem',
+                      marginBottom: '0.85rem',
+                      lineHeight: 1.35,
+                      letterSpacing: '-0.01em',
                       ...props.style,
                     }}
                   />
+                ),
+                h2: ({ node, ...props }) => (
+                  <h2
+                    {...props}
+                    style={{
+                      fontSize: '1.15rem',
+                      fontWeight: 700,
+                      color: 'var(--accent-gold)',
+                      marginTop: '2.25rem',
+                      marginBottom: '1rem',
+                      paddingBottom: '0.45rem',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                      lineHeight: 1.4,
+                      ...props.style,
+                    }}
+                  />
+                ),
+                h3: ({ node, ...props }) => (
+                  <h3
+                    {...props}
+                    style={{
+                      fontSize: '1.02rem',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                      marginTop: '1.6rem',
+                      marginBottom: '0.75rem',
+                      lineHeight: 1.4,
+                      ...props.style,
+                    }}
+                  />
+                ),
+                h4: ({ node, ...props }) => (
+                  <h4
+                    {...props}
+                    style={{
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                      marginTop: '1.25rem',
+                      marginBottom: '0.5rem',
+                      lineHeight: 1.4,
+                      ...props.style,
+                    }}
+                  />
+                ),
+                p: ({ node, ...props }) => (
+                  <p
+                    {...props}
+                    style={{
+                      marginBottom: '1rem',
+                      lineHeight: 1.7,
+                      color: 'var(--text-secondary)',
+                      ...props.style,
+                    }}
+                  />
+                ),
+                ul: ({ node, ...props }) => (
+                  <ul
+                    {...props}
+                    style={{
+                      paddingLeft: '1.65rem',
+                      marginTop: '0.5rem',
+                      marginBottom: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.55rem',
+                      listStyleType: 'disc',
+                      ...props.style,
+                    }}
+                  />
+                ),
+                ol: ({ node, ...props }) => (
+                  <ol
+                    {...props}
+                    style={{
+                      paddingLeft: '1.65rem',
+                      marginTop: '0.5rem',
+                      marginBottom: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                      listStyleType: 'decimal',
+                      ...props.style,
+                    }}
+                  />
+                ),
+                li: ({ node, ...props }) => (
+                  <li
+                    {...props}
+                    style={{
+                      lineHeight: 1.65,
+                      color: 'var(--text-secondary)',
+                      ...props.style,
+                    }}
+                  />
+                ),
+                hr: ({ node, ...props }) => (
+                  <hr
+                    {...props}
+                    style={{
+                      margin: '2rem 0',
+                      border: 'none',
+                      borderTop: '1px solid var(--border-color)',
+                      opacity: 0.25,
+                      ...props.style,
+                    }}
+                  />
+                ),
+                code: ({ node, ...props }: any) => (
+                  <code
+                    {...props}
+                    style={{
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                      fontSize: '0.86em',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      color: 'var(--accent-gold)',
+                      padding: '0.15rem 0.4rem',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      ...props.style,
+                    }}
+                  />
+                ),
+                strong: ({ node, ...props }) => (
+                  <strong
+                    {...props}
+                    style={{
+                      color: 'var(--text-primary)',
+                      fontWeight: 600,
+                      ...props.style,
+                    }}
+                  />
+                ),
+                table: ({ node, ...props }) => (
+                  <div style={{ overflowX: 'auto', margin: '1.25rem 0 1.75rem 0', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                    <table
+                      {...props}
+                      style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        ...props.style,
+                      }}
+                    />
+                  </div>
                 ),
                 thead: ({ node, ...props }) => (
                   <thead

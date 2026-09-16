@@ -316,4 +316,96 @@ describe('VaultStaking Transactions', () => {
 
     expect(mockWithdraw).toHaveBeenCalledWith(expect.anything(), true);
   });
+
+  it('should display active cooldown timer and disable claim until releaseTime has passed', async () => {
+    (useProtocol as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...mockProtocolContext,
+      userData: {
+        ...mockProtocolContext.userData,
+        stakedBalance: 100000000000000000000n, // 100 NXD
+        cooldownRequest: {
+          amount: 40000000000000000000n, // 40 NXD
+          releaseTime: Math.floor(Date.now() / 1000) + 86400, // in 24 hours
+        },
+      },
+    });
+
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    // Should display pending withdrawal request notice with amount
+    expect(screen.getByText(/Pending withdrawal request:/i)).toBeInTheDocument();
+    expect(screen.getByText(/40\.0000 NXDv3/i)).toBeInTheDocument();
+    expect(screen.getByText(/Available after:/i)).toBeInTheDocument();
+
+    // Claim Withdrawal button should NOT be shown before releaseTime
+    expect(screen.queryByText('Claim Withdrawal')).not.toBeInTheDocument();
+
+    // In Withdraw tab, MAX button should calculate available amount excluding active cooldown
+    const withdrawTab = screen.getByText('Withdraw');
+    fireEvent.click(withdrawTab);
+
+    expect(screen.getByText(/Active cooldown: 40\.0000/i)).toBeInTheDocument();
+
+    const maxBtn = screen.getByText('MAX');
+    fireEvent.click(maxBtn);
+
+    const input = screen.getByPlaceholderText('0.0 NXDv3') as HTMLInputElement;
+    expect(input.value).toBe('60');
+  });
+
+  it('should disable withdrawal buttons when withdraw amount is empty or zero', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const withdrawTab = screen.getByText('Withdraw');
+    fireEvent.click(withdrawTab);
+
+    const cooldownBtn = screen.getByText('Request Withdrawal (24h Cooldown)');
+    const penaltyBtn = screen.getByText('Withdraw Now (25% Penalty)');
+
+    // Initially empty
+    expect(cooldownBtn).toBeDisabled();
+    expect(penaltyBtn).toBeDisabled();
+
+    // Set to 0
+    const input = screen.getByPlaceholderText('0.0 NXDv3');
+    fireEvent.change(input, { target: { value: '0' } });
+    expect(cooldownBtn).toBeDisabled();
+    expect(penaltyBtn).toBeDisabled();
+  });
+
+  it('should handle withdrawal transaction error gracefully', async () => {
+    mockWithdraw.mockRejectedValueOnce(new Error('User rejected withdrawal transaction'));
+
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const withdrawTab = screen.getByText('Withdraw');
+    fireEvent.click(withdrawTab);
+
+    const input = screen.getByPlaceholderText('0.0 NXDv3');
+    fireEvent.change(input, { target: { value: '15' } });
+
+    const penaltyBtn = screen.getByText('Withdraw Now (25% Penalty)');
+    await act(async () => {
+      fireEvent.click(penaltyBtn);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/rejected|error|failed/i)).toBeInTheDocument();
+    });
+  });
 });

@@ -30,8 +30,9 @@ vi.mock('lucide-react', () => ({
 // Mock config
 vi.mock('../../config/networks', () => ({
   NETWORKS: {
-    10: { name: 'Optimism' },
-    369: { name: 'PulseChain' },
+    10: { name: 'Optimism', chainId: 10 },
+    8453: { name: 'Base', chainId: 8453 },
+    369: { name: 'PulseChain', chainId: 369 },
   },
 }));
 
@@ -51,6 +52,7 @@ const mockWalletContext = {
       dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
     },
   },
+  error: null,
   connectWallet: vi.fn(),
   disconnectWallet: vi.fn(),
   switchNetwork: vi.fn(),
@@ -75,6 +77,20 @@ describe('Header', () => {
     expect(logoElements.length).toBeGreaterThan(0);
   });
 
+  it('calls onGoHome when logo is clicked', () => {
+    const onGoHome = vi.fn();
+    render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome,
+      })
+    );
+
+    const logoBtn = screen.getByRole('button', { name: /Go to home page/i });
+    fireEvent.click(logoBtn);
+    expect(onGoHome).toHaveBeenCalledTimes(1);
+  });
+
   it('shows connect wallet button when not connected', () => {
     (useWallet as any).mockReturnValue({ ...mockWalletContext, isConnected: false });
     render(
@@ -87,6 +103,21 @@ describe('Header', () => {
     // Look for connect wallet button
     const connectElements = screen.getAllByText(/Connect Wallet/);
     expect(connectElements.length).toBeGreaterThan(0);
+  });
+
+  it('calls connectWallet when connect button is clicked', () => {
+    const connectWallet = vi.fn();
+    (useWallet as any).mockReturnValue({ ...mockWalletContext, isConnected: false, connectWallet });
+    render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const connectBtn = screen.getByTitle('Connect Wallet');
+    fireEvent.click(connectBtn);
+    expect(connectWallet).toHaveBeenCalledTimes(1);
   });
 
   it('shows wallet address when connected', () => {
@@ -102,7 +133,9 @@ describe('Header', () => {
     expect(addressElements.length).toBeGreaterThan(0);
   });
 
-  it('shows charts button', () => {
+  it('calls disconnectWallet when Disconnect button is clicked', () => {
+    const disconnectWallet = vi.fn();
+    (useWallet as any).mockReturnValue({ ...mockWalletContext, disconnectWallet });
     render(
       React.createElement(Header, {
         onOpenCharts: vi.fn(),
@@ -110,10 +143,12 @@ describe('Header', () => {
       })
     );
 
-    expect(screen.getByText(/Protocol Charts Hub/)).toBeInTheDocument();
+    const disconnectBtn = screen.getByTitle('Disconnect Wallet');
+    fireEvent.click(disconnectBtn);
+    expect(disconnectWallet).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onOpenCharts when charts button is clicked', () => {
+  it('shows charts button and triggers onOpenCharts on click', () => {
     const onOpenCharts = vi.fn();
     render(
       React.createElement(Header, {
@@ -122,7 +157,107 @@ describe('Header', () => {
       })
     );
 
-    fireEvent.click(screen.getByText(/Protocol Charts Hub/));
-    expect(onOpenCharts).toHaveBeenCalled();
+    const chartsBtn = screen.getByText(/^Charts$/);
+    expect(chartsBtn).toBeInTheDocument();
+    fireEvent.click(chartsBtn);
+    expect(onOpenCharts).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens network dropdown and allows switching networks', () => {
+    const switchNetwork = vi.fn();
+    (useWallet as any).mockReturnValue({ ...mockWalletContext, switchNetwork });
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    // Click network dropdown button in desktop header-actions
+    const networkDropdownToggle = container.querySelector(
+      '.header-actions .dropdown-container:nth-of-type(3) button'
+    ) as HTMLElement;
+    expect(networkDropdownToggle).not.toBeNull();
+    fireEvent.click(networkDropdownToggle);
+
+    // Floating dropdown menu should be rendered
+    const dropdownMenu = container.querySelector('.dropdown-menu');
+    expect(dropdownMenu).not.toBeNull();
+
+    // PulseChain (369) should be filtered out from the dropdown options
+    const dropdownText = dropdownMenu?.textContent || '';
+    expect(dropdownText).toContain('Base');
+    expect(dropdownText).toContain('Optimism');
+    expect(dropdownText).not.toContain('PulseChain');
+
+    // Click Base button inside dropdown menu
+    const dropdownItems = dropdownMenu?.querySelectorAll('button.dropdown-item') || [];
+    const baseBtn = Array.from(dropdownItems).find((btn) => btn.textContent?.includes('Base'));
+    expect(baseBtn).toBeDefined();
+    fireEvent.click(baseBtn!);
+
+    expect(switchNetwork).toHaveBeenCalledWith(8453);
+  });
+
+  it('toggles mobile drawer open and closed with hamburger menu button', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+    expect(menuToggle).toBeInTheDocument();
+    expect(drawer).not.toHaveClass('open');
+
+    // Open mobile menu
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+
+    // Close using close button inside drawer
+    const closeBtn = container.querySelector('.mobile-drawer-header .modal-close-btn') as HTMLElement;
+    fireEvent.click(closeBtn);
+    expect(drawer).not.toHaveClass('open');
+  });
+
+  it('closes mobile drawer when backdrop is clicked', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+
+    const backdrop = container.querySelector('.mobile-nav-backdrop') as HTMLElement;
+    expect(backdrop).toBeInTheDocument();
+    fireEvent.click(backdrop);
+
+    expect(drawer).not.toHaveClass('open');
+  });
+
+  it('renders wallet error banner when error is present in useWallet', () => {
+    (useWallet as any).mockReturnValue({
+      ...mockWalletContext,
+      error: 'User denied transaction signature',
+    });
+
+    render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const errorAlerts = screen.getAllByRole('alert');
+    expect(errorAlerts.length).toBeGreaterThan(0);
+    const msgElements = screen.getAllByText('User denied transaction signature');
+    expect(msgElements.length).toBeGreaterThan(0);
   });
 });
