@@ -16,28 +16,27 @@ export const HowItWorksPart2: React.FC = () => (
       </p>
       <p>
         To prevent high gas overhead and slippage during regular transfers, 
-        tax handling is decoupled: 30% of the tax is burned immediately, 
-        while the remaining 70% is transferred directly to TaxRecipientV3 
-        to be processed asynchronously via processTax():
+        tax handling is decoupled:
       </p>
       <ul>
+        <li> 
+          <strong>30% of the tax</strong>is burned immediately
+        </li>
+      </ul>
+        ,while the remaining 70% is transferred directly to TaxRecipientV3 
+        to be processed asynchronously via processTax():
+      
+      <ul>
         <li>
-          <strong>40% of Tax:</strong> Sold for DXNv2 on Uniswap V2 - transfer to TaxRecipientV3
-          (protected by TWAP Price Oracles).
+          <strong>40% of Total Tax:</strong> Swapped for DXNv2 on Uniswap V2 (protected by TWAP Price Oracles).
         </li>
         <li>
-          <strong>30% of Tax:</strong> Burned immediately (reducing circulating supply).
+          <strong>30% of Total Tax:</strong> paired with DXNv2 to auto-inject Protocol-Owned Liquidity (Auto-LP) into Uniswap V2, 
+          strengthening the NXDv3/DXNv2 price floor.
         </li>
         <li>
-          <strong>30% of Tax:</strong> Transferred to TaxRecipientV3:
-          <ul>
-            <li>25% of accumulated DXNv2 is restaked into the DBxenv2 protocol.</li>
-            <li>
-              The remaining DXNv2 and NXDv3 are paired to auto-inject Protocol-Owned Liquidity
-              (Auto-LP) into Uniswap V2, strengthening the NXDv3/DXNv2 price floor.
-            </li>
-          </ul>
-        </li>
+          <strong>DXNv2 Restaking:</strong> 25% of accumulated DXNv2 is restaked into the DBxenv2 protocol.
+          </li>
       </ul>
     </div>
 
