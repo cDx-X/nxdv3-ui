@@ -282,5 +282,44 @@ describe('Header', () => {
     fireEvent.click(closeBtn);
     expect(screen.queryByText('Mobile Connection (QR)')).not.toBeInTheDocument();
   });
+  it('closes open dropdown menu when Escape key is pressed', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const networkDropdownToggle = container.querySelector(
+      '.header-actions .dropdown-container:nth-of-type(3) button'
+    ) as HTMLElement;
+    fireEvent.click(networkDropdownToggle);
+
+    expect(container.querySelector('.dropdown-menu')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(container.querySelector('.dropdown-menu')).not.toBeInTheDocument();
+  });
+
+  it('closes mobile drawer on window resize above 900px', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+
+    // Simulate window resizing to desktop
+    window.innerWidth = 1024;
+    fireEvent(window, new Event('resize'));
+
+    expect(drawer).not.toHaveClass('open');
+  });
+
 
 });

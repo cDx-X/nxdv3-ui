@@ -39,11 +39,10 @@ function saveEpochCache(data: CachedEpochState) {
   }
 }
 
-const initialCached = loadEpochCache();
-
 export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
   nxdAddress = CONTRACT_ADDRESSES.nxdAddress,
 }) => {
+  const [initialCached] = useState(() => loadEpochCache());
   const [firstBurnDateFormatted, setFirstBurnDateFormatted] = useState<string>(
     initialCached?.firstBurnDateFormatted || 'Awaiting'
   );

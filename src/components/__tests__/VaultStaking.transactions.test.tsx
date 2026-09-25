@@ -18,8 +18,11 @@ const mockApprove = vi.fn().mockResolvedValue({ hash: '0xapprove123' });
 const mockInitiateCooldown = vi.fn().mockResolvedValue({ hash: '0xcooldown123' });
 const mockWithdrawCooldown = vi.fn().mockResolvedValue({ hash: '0xwithdraw123' });
 const mockClaimRewards = vi.fn().mockResolvedValue({ hash: '0xclaim123' });
+const mockClaimRewardsTo = vi.fn().mockResolvedValue({ hash: '0xclaimTo123' });
 const mockClaimETH = vi.fn().mockResolvedValue({ hash: '0xclaimETH123' });
+const mockClaimETHTo = vi.fn().mockResolvedValue({ hash: '0xclaimETHTo123' });
 const mockClaimXEN = vi.fn().mockResolvedValue({ hash: '0xclaimXEN123' });
+const mockClaimXENTo = vi.fn().mockResolvedValue({ hash: '0xclaimXENTo123' });
 const mockWait = vi.fn().mockResolvedValue({ status: 1 });
 
 vi.mock('ethers', () => {
@@ -40,11 +43,16 @@ vi.mock('ethers', () => {
           initiateCooldown: mockInitiateCooldown,
           withdrawCooldown: mockWithdrawCooldown,
           claimRewards: mockClaimRewards,
+          claimRewardsTo: mockClaimRewardsTo,
           claimETH: mockClaimETH,
+          claimETHTo: mockClaimETHTo,
           claimXEN: mockClaimXEN,
+          claimXENTo: mockClaimXENTo,
         };
       }),
-      isAddress: vi.fn(() => true),
+      isAddress: vi.fn((addr: string) => {
+        return typeof addr === 'string' && /^0x[0-9a-fA-F]{40}$/.test(addr);
+      }),
       parseEther: vi.fn((v: string) => BigInt(parseFloat(v) * 1e18)),
       formatEther: vi.fn((v: bigint) => (Number(v) / 1e18).toString()),
       MaxUint256: 115792089237316195423570985008687907853269984665640564039457584007913129639935n,
@@ -242,6 +250,99 @@ describe('VaultStaking Transactions', () => {
     });
 
     expect(mockClaimXEN).toHaveBeenCalled();
+  });
+
+  it('should switch to Custom Address mode and claimRewardsTo recipient', async () => {
+    const customRecipient = '0x1111111111111111111111111111111111111111';
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    // Switch to Custom Address toggle
+    const customAddressToggle = screen.getByText('Custom Address');
+    fireEvent.click(customAddressToggle);
+
+    const recipientInput = screen.getByPlaceholderText('0x... recipient address');
+    fireEvent.change(recipientInput, { target: { value: customRecipient } });
+
+    const claimAllButton = screen.getByText('Claim All');
+    await act(async () => {
+      fireEvent.click(claimAllButton);
+    });
+
+    expect(mockClaimRewardsTo).toHaveBeenCalledWith(customRecipient);
+  });
+
+  it('should claimETHTo recipient when Custom Address is selected', async () => {
+    const customRecipient = '0x2222222222222222222222222222222222222222';
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const customAddressToggle = screen.getByText('Custom Address');
+    fireEvent.click(customAddressToggle);
+
+    const recipientInput = screen.getByPlaceholderText('0x... recipient address');
+    fireEvent.change(recipientInput, { target: { value: customRecipient } });
+
+    const claimEthButton = screen.getByText('Claim ETH');
+    await act(async () => {
+      fireEvent.click(claimEthButton);
+    });
+
+    expect(mockClaimETHTo).toHaveBeenCalledWith(customRecipient);
+  });
+
+  it('should claimXENTo recipient when Custom Address is selected', async () => {
+    const customRecipient = '0x3333333333333333333333333333333333333333';
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const customAddressToggle = screen.getByText('Custom Address');
+    fireEvent.click(customAddressToggle);
+
+    const recipientInput = screen.getByPlaceholderText('0x... recipient address');
+    fireEvent.change(recipientInput, { target: { value: customRecipient } });
+
+    const claimXenButton = screen.getByText('Claim XEN');
+    await act(async () => {
+      fireEvent.click(claimXenButton);
+    });
+
+    expect(mockClaimXENTo).toHaveBeenCalledWith(customRecipient);
+  });
+
+  it('should show error when claiming to an invalid address', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const customAddressToggle = screen.getByText('Custom Address');
+    fireEvent.click(customAddressToggle);
+
+    const recipientInput = screen.getByPlaceholderText('0x... recipient address');
+    fireEvent.change(recipientInput, { target: { value: 'invalid-eth-address' } });
+
+    const claimAllButton = screen.getByText('Claim All');
+    await act(async () => {
+      fireEvent.click(claimAllButton);
+    });
+
+    expect(mockClaimRewardsTo).not.toHaveBeenCalled();
+    expect(screen.getByText('Invalid recipient address')).toBeInTheDocument();
   });
 
   it('should show withdrawCooldown button when cooldown has completed', async () => {
