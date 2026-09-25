@@ -47,6 +47,8 @@ export default [
         AbortController: 'readonly',
         Headers: 'readonly',
         fetch: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLButtonElement: 'readonly',
         btoa: 'readonly',
         atob: 'readonly',
       },

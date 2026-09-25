@@ -77,3 +77,8 @@ export function ensureAppKit() {
   }
   return appKitPromise;
 }
+
+export function resetAppKitForTesting() {
+  appKitPromise = null;
+}
+

@@ -25,6 +25,9 @@ vi.mock('lucide-react', () => ({
   Coins: () => React.createElement('span', null, 'Coins'),
   QrCode: () => React.createElement('span', null, 'QrCode'),
   AlertTriangle: () => React.createElement('span', null, 'AlertTriangle'),
+  Smartphone: () => React.createElement('span', null, 'Smartphone'),
+  Copy: () => React.createElement('span', null, 'Copy'),
+  Check: () => React.createElement('span', null, 'Check'),
 }));
 
 // Mock config
@@ -260,4 +263,24 @@ describe('Header', () => {
     const msgElements = screen.getAllByText('User denied transaction signature');
     expect(msgElements.length).toBeGreaterThan(0);
   });
+
+  it('opens and closes QR Code modal from header button', () => {
+    render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const qrBtn = screen.getByTitle('Scan QR Code to open on phone');
+    expect(qrBtn).toBeInTheDocument();
+    fireEvent.click(qrBtn);
+
+    expect(screen.getByText('Mobile Connection (QR)')).toBeInTheDocument();
+
+    const closeBtn = screen.getByTitle('Close');
+    fireEvent.click(closeBtn);
+    expect(screen.queryByText('Mobile Connection (QR)')).not.toBeInTheDocument();
+  });
+
 });
