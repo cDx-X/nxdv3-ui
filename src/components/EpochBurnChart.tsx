@@ -154,10 +154,10 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
 
       {/* Summary Cards */}
       <div className="epoch-summary-grid">
-        <div className="card px-2 py-2.5 flex flex-col min-w-0">
+        <div className="card px-2 py-2 flex flex-col min-w-0">
           <span
             style={{
-              fontSize: '10px',
+              fontSize: '11px',
               color: 'var(--text-secondary)',
               display: 'flex',
               alignItems: 'center',
@@ -165,10 +165,8 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
               width: '100%',
               whiteSpace: 'nowrap',
               textAlign: 'left',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              lineHeight: 1.2,
             }}
-            className="truncate"
           >
             First Burn
           </span>
@@ -180,10 +178,10 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
             {firstBurnDateFormatted.replace(' UTC', '')}
           </span>
         </div>
-        <div className="card px-2 py-2.5 flex flex-col min-w-0">
+        <div className="card px-2 py-2 flex flex-col min-w-0">
           <span
             style={{
-              fontSize: '10px',
+              fontSize: '11px',
               color: 'var(--text-secondary)',
               display: 'flex',
               alignItems: 'center',
@@ -191,10 +189,8 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
               width: '100%',
               whiteSpace: 'nowrap',
               textAlign: 'left',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              lineHeight: 1.2,
             }}
-            className="truncate"
           >
             Active Epoch
           </span>
@@ -205,10 +201,10 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
             Epoch #{currentEpochNum}
           </span>
         </div>
-        <div className="card px-2 py-2.5 flex flex-col min-w-0">
+        <div className="card px-2 py-2 flex flex-col min-w-0">
           <span
             style={{
-              fontSize: '10px',
+              fontSize: '11px',
               color: 'var(--text-secondary)',
               display: 'flex',
               alignItems: 'center',
@@ -216,10 +212,9 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
               width: '100%',
               whiteSpace: 'nowrap',
               textAlign: 'left',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              lineHeight: 1.2,
             }}
-            className="truncate"
+            title="Total NXD Burned"
           >
             Total NXD Burned
           </span>
@@ -233,10 +228,10 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
             })}
           </span>
         </div>
-        <div className="card px-2 py-2.5 flex flex-col min-w-0">
+        <div className="card px-2 py-2 flex flex-col min-w-0">
           <span
             style={{
-              fontSize: '10px',
+              fontSize: '11px',
               color: 'var(--text-secondary)',
               display: 'flex',
               alignItems: 'center',
@@ -244,10 +239,8 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
               width: '100%',
               whiteSpace: 'nowrap',
               textAlign: 'left',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              lineHeight: 1.2,
             }}
-            className="truncate"
           >
             Epoch Duration
           </span>
