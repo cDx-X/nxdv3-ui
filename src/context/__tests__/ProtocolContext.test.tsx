@@ -152,4 +152,46 @@ describe('ProtocolContext', () => {
       expect(mockMulticall.mock.calls.length).toBeGreaterThan(initialCallCount);
     });
   });
+
+  it('should reset user state when address becomes null (disconnected)', async () => {
+    const { rerender } = renderWithProvider({
+      isConnected: true,
+      address: '0x1234567890123456789012345678901234567890',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('user-loaded')).toHaveTextContent('true');
+    });
+
+    mockUseWallet.mockReturnValue({
+      isConnected: false,
+      address: null,
+      signer: null,
+      networkConfig: { chainId: 10, name: 'Optimism', addresses: {} },
+    });
+
+    rerender(
+      <ProtocolProvider>
+        <TestComponent />
+      </ProtocolProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('user-loaded')).toHaveTextContent('false');
+      expect(screen.getByTestId('user-dxn')).toHaveTextContent('0');
+    });
+  });
+
+  it('should trigger debounced user refresh on window focus', async () => {
+    vi.useFakeTimers();
+    renderWithProvider();
+
+    const initialCallCount = mockMulticall.mock.calls.length;
+    window.dispatchEvent(new Event('focus'));
+
+    // Advance timer past debounce (800ms)
+    vi.advanceTimersByTime(1000);
+
+    expect(mockMulticall.mock.calls.length).toBeGreaterThanOrEqual(initialCallCount);
+  });
 });

@@ -1,5 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+
+vi.mock('../MermaidDiagram', () => ({
+  MermaidDiagram: ({ title }: { title?: string }) => (
+    <div data-testid="mermaid-mock">{title || 'Mermaid Diagram'}</div>
+  ),
+}));
+
 import { AuditModal } from '../AuditModal';
 
 describe('AuditModal', () => {

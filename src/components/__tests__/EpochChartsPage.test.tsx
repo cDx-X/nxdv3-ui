@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
 // Mock contexts before importing components
@@ -108,16 +108,16 @@ vi.mock('lucide-react', () => ({
 }));
 
 // Mock child components with simple implementations
-vi.mock('./EpochBurnChart', () => ({
+vi.mock('../EpochBurnChart', () => ({
   EpochBurnChart: () => React.createElement('div', { 'data-testid': 'epoch-burn-chart' }, 'EpochBurnChart'),
 }));
-vi.mock('./SupplyBarChart', () => ({
+vi.mock('../SupplyBarChart', () => ({
   SupplyBarChart: () => React.createElement('div', { 'data-testid': 'supply-bar-chart' }, 'SupplyBarChart'),
 }));
-vi.mock('./MintingTierChart', () => ({
+vi.mock('../MintingTierChart', () => ({
   MintingTierChart: () => React.createElement('div', { 'data-testid': 'minting-tier-chart' }, 'MintingTierChart'),
 }));
-vi.mock('./VaultRewardsChart', () => ({
+vi.mock('../VaultRewardsChart', () => ({
   VaultRewardsChart: () => React.createElement('div', { 'data-testid': 'vault-rewards-chart' }, 'VaultRewardsChart'),
 }));
 
@@ -163,4 +163,48 @@ describe('EpochChartsPage', () => {
     render(React.createElement(EpochChartsPage, defaultProps));
     expect(screen.getByText(/Vault Rewards/)).toBeInTheDocument();
   });
+  it('toggles descriptions for each chart section when clicking Info buttons', () => {
+    render(React.createElement(EpochChartsPage, defaultProps));
+
+    // Get all toggle buttons
+    const infoButtons = screen.getAllByTitle('Toggle Chart Description');
+    expect(infoButtons).toHaveLength(4);
+
+    // Initial state: no descriptions rendered
+    expect(screen.queryByText(/Deflationary pressure/i)).not.toBeInTheDocument();
+
+    // Toggle 1: Epoch Burn Info
+    fireEvent.click(infoButtons[0]);
+    expect(screen.getByText(/Amount of burned NXDv3 broken down by cycles/i)).toBeInTheDocument();
+    fireEvent.click(infoButtons[0]);
+    expect(screen.queryByText(/Amount of burned NXDv3 broken down by cycles/i)).not.toBeInTheDocument();
+
+    // Toggle 2: Supply Info
+    fireEvent.click(infoButtons[1]);
+    expect(screen.getByText(/Breakdown of the total emitted NXDv3 supply/i)).toBeInTheDocument();
+    fireEvent.click(infoButtons[1]);
+    expect(screen.queryByText(/Breakdown of the total emitted NXDv3 supply/i)).not.toBeInTheDocument();
+
+    // Toggle 3: Mint Info
+    fireEvent.click(infoButtons[2]);
+    expect(screen.getByText(/Current DXNv2\/NXDv3 exchange rate/i)).toBeInTheDocument();
+    fireEvent.click(infoButtons[2]);
+    expect(screen.queryByText(/Current DXNv2\/NXDv3 exchange rate/i)).not.toBeInTheDocument();
+
+    // Toggle 4: Vault Info
+    fireEvent.click(infoButtons[3]);
+    expect(screen.getByText(/Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i)).toBeInTheDocument();
+    fireEvent.click(infoButtons[3]);
+    expect(screen.queryByText(/Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i)).not.toBeInTheDocument();
+  });
+
+  it('triggers onBack when back button is clicked', () => {
+    const onBack = vi.fn();
+    render(React.createElement(EpochChartsPage, { ...defaultProps, onBack }));
+
+    const backBtn = screen.getByText(/Back to Dashboard/);
+    fireEvent.click(backBtn);
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
 });

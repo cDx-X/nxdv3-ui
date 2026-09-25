@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 // Mock contexts
@@ -41,9 +41,9 @@ vi.mock('react-chartjs-2', () => ({
   Bar: () => React.createElement('div', null, 'BarChart'),
 }));
 
-// Mock vaultRewards - return empty array to show loading state
+// Mock vaultRewards
 vi.mock('../../utils/vaultRewards', () => ({
-  fetchVaultRewards: vi.fn().mockResolvedValue([]),
+  fetchVaultRewards: vi.fn(),
 }));
 
 // Mock RangeSlider
@@ -59,15 +59,21 @@ vi.mock('lucide-react', () => ({
 import { VaultRewardsChart } from '../VaultRewardsChart';
 import { useProtocol } from '../../context/ProtocolContext';
 import { useWallet } from '../../context/WalletContext';
+import { fetchVaultRewards } from '../../utils/vaultRewards';
 
 const mockProtocolContext = {
   globalData: {
     isLoaded: true,
     totalVaultStaked: 1000000000000000000000000n,
+    totalETHToStakingVault: 5000000000000000000n,
+    totalXENBought: 100000000000000000000000n,
+    nxdTotalSupply: 2000000000000000000000000n,
   },
   userData: {
     isLoaded: true,
     stakedBalance: 100000000000000000000000n,
+    pendingETH: 100000000000000000n,
+    pendingXEN: 5000000000000000000n,
   },
 };
 
@@ -80,30 +86,64 @@ describe('VaultRewardsChart', () => {
     vi.clearAllMocks();
     (useProtocol as any).mockReturnValue(mockProtocolContext);
     (useWallet as any).mockReturnValue(mockWalletContext);
+    (fetchVaultRewards as any).mockResolvedValue([]);
   });
 
-  it('renders vault rewards chart', () => {
+  it('renders vault rewards chart and resolves loading state', async () => {
     render(React.createElement(VaultRewardsChart));
 
     expect(screen.getByText(/Historical ETH and XEN reward inflows/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/No reward inflows recorded yet/)).toBeInTheDocument();
+    });
   });
 
-  it('shows loading state initially', () => {
+  it('shows loading state initially while fetch is pending', async () => {
+    (fetchVaultRewards as any).mockReturnValue(new Promise(() => {}));
     render(React.createElement(VaultRewardsChart));
 
     expect(screen.getByText(/Loading rewards history/)).toBeInTheDocument();
   });
 
-  it('shows user share section', () => {
+  it('renders chart data when rewards are present', async () => {
+    (fetchVaultRewards as any).mockResolvedValue([
+      { epoch: 1, date: '2025-01-01', ethWei: 1000000000000000000n, xenWei: 2000000000000000000000n },
+      { epoch: 2, date: '2025-01-08', ethWei: 2000000000000000000n, xenWei: 3000000000000000000000n },
+    ]);
+
+    render(React.createElement(VaultRewardsChart));
+
+    await waitFor(() => {
+      expect(screen.getAllByText('BarChart')).toHaveLength(2);
+    });
+  });
+
+  it('shows error message if fetch fails', async () => {
+    (fetchVaultRewards as any).mockRejectedValue(new Error('Network error'));
+
+    render(React.createElement(VaultRewardsChart));
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load vault rewards history.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows user share section', async () => {
     render(React.createElement(VaultRewardsChart));
 
     expect(screen.getByText(/Your share/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText(/Loading rewards history/)).not.toBeInTheDocument();
+    });
   });
 
-  it('shows connect wallet message when not connected', () => {
+  it('shows connect wallet message when not connected', async () => {
     (useWallet as any).mockReturnValue({ isConnected: false });
     render(React.createElement(VaultRewardsChart));
 
     expect(screen.getByText(/Connect wallet to view/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText(/Loading rewards history/)).not.toBeInTheDocument();
+    });
   });
 });

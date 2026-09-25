@@ -321,5 +321,119 @@ describe('Header', () => {
     expect(drawer).not.toHaveClass('open');
   });
 
+  it('toggles Get NXDv3 dropdown and renders links', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const nxdToggle = container.querySelector(
+      '.header-actions .dropdown-container:nth-of-type(1) button'
+    ) as HTMLElement;
+    expect(nxdToggle).toBeInTheDocument();
+    fireEvent.click(nxdToggle);
+
+    const dropdownMenu = container.querySelector('.dropdown-menu');
+    expect(dropdownMenu).toBeInTheDocument();
+    const dropdownItems = dropdownMenu?.querySelectorAll('a.dropdown-item') || [];
+    expect(dropdownItems.length).toBe(2);
+    expect(dropdownItems[0].textContent).toContain('Uniswap');
+    expect(dropdownItems[1].textContent).toContain('Dexscreener');
+
+    fireEvent.click(dropdownItems[0]);
+    expect(container.querySelector('.dropdown-menu')).not.toBeInTheDocument();
+  });
+
+  it('toggles Get DXNv2 dropdown and renders links', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const dxnToggle = container.querySelector(
+      '.header-actions .dropdown-container:nth-of-type(2) button'
+    ) as HTMLElement;
+    expect(dxnToggle).toBeInTheDocument();
+    fireEvent.click(dxnToggle);
+
+    const dropdownMenu = container.querySelector('.dropdown-menu');
+    expect(dropdownMenu).toBeInTheDocument();
+    const dropdownItems = dropdownMenu?.querySelectorAll('a.dropdown-item') || [];
+    expect(dropdownItems.length).toBe(3);
+    expect(dropdownItems[0].textContent).toContain('Uniswap');
+    expect(dropdownItems[1].textContent).toContain('dbXen v2 vercel');
+    expect(dropdownItems[2].textContent).toContain('dbXen v2 app');
+
+    fireEvent.click(dropdownItems[2]);
+    expect(container.querySelector('.dropdown-menu')).not.toBeInTheDocument();
+  });
+
+  it('handles mobile drawer actions: navigation, network switch, and disconnect', () => {
+    const onOpenCharts = vi.fn();
+    const switchNetwork = vi.fn();
+    const disconnectWallet = vi.fn();
+
+    (useWallet as any).mockReturnValue({
+      ...mockWalletContext,
+      switchNetwork,
+      disconnectWallet,
+    });
+
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts,
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    fireEvent.click(menuToggle);
+
+    // Click Charts Hub inside drawer
+    const chartsBtn = screen.getByText('Protocol Charts Hub');
+    fireEvent.click(chartsBtn);
+    expect(onOpenCharts).toHaveBeenCalledTimes(1);
+
+    // Re-open and switch network via mobile drawer
+    fireEvent.click(menuToggle);
+    const baseMobileBtns = screen.getAllByText('Base');
+    fireEvent.click(baseMobileBtns[baseMobileBtns.length - 1]);
+    expect(switchNetwork).toHaveBeenCalledWith(8453);
+
+    // Re-open and click disconnect in drawer
+    fireEvent.click(menuToggle);
+    const disconnectMobileBtns = screen.getAllByText('Disconnect Wallet');
+    fireEvent.click(disconnectMobileBtns[disconnectMobileBtns.length - 1]);
+    expect(disconnectWallet).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles mobile drawer connect button when disconnected', () => {
+    const connectWallet = vi.fn();
+    (useWallet as any).mockReturnValue({
+      ...mockWalletContext,
+      isConnected: false,
+      connectWallet,
+    });
+
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    fireEvent.click(menuToggle);
+
+    const connectMobileBtn = container.querySelector('.mobile-drawer-content .btn-connect') as HTMLElement;
+    expect(connectMobileBtn).toBeInTheDocument();
+    fireEvent.click(connectMobileBtn);
+    expect(connectWallet).toHaveBeenCalledTimes(1);
+  });
+
 
 });

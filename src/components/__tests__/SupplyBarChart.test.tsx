@@ -101,3 +101,37 @@ describe('SupplyBarChart', () => {
     expect(screen.getByText('DoughnutChart')).toBeInTheDocument();
   });
 });
+  it('shows loading indicator when global data is loading and not yet loaded', () => {
+    (useProtocol as any).mockReturnValue({
+      globalData: {
+        isLoaded: false,
+        nxdTotalSupply: 0n,
+        totalNXDBurned: 0n,
+        totalVaultStaked: 0n,
+        nxdMaxSupply: 0n,
+      },
+      isLoadingGlobal: true,
+    });
+
+    render(React.createElement(SupplyBarChart, {}));
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
+
+  it('handles zero total supply and burned gracefully', () => {
+    (useProtocol as any).mockReturnValue({
+      globalData: {
+        isLoaded: true,
+        nxdTotalSupply: 0n,
+        totalNXDBurned: 0n,
+        totalVaultStaked: 0n,
+        nxdMaxSupply: 0n,
+      },
+      isLoadingGlobal: false,
+    });
+
+    render(React.createElement(SupplyBarChart, {}));
+
+    expect(screen.getByText('Total')).toBeInTheDocument();
+  });
+
