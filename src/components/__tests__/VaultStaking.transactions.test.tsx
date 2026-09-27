@@ -117,8 +117,11 @@ describe('VaultStaking Transactions', () => {
     mockInitiateCooldown.mockResolvedValue({ hash: '0xcooldown123', wait: mockWait });
     mockWithdrawCooldown.mockResolvedValue({ hash: '0xwithdraw123', wait: mockWait });
     mockClaimRewards.mockResolvedValue({ hash: '0xclaim123', wait: mockWait });
+    mockClaimRewardsTo.mockResolvedValue({ hash: '0xclaimTo123', wait: mockWait });
     mockClaimETH.mockResolvedValue({ hash: '0xclaimETH123', wait: mockWait });
+    mockClaimETHTo.mockResolvedValue({ hash: '0xclaimETHTo123', wait: mockWait });
     mockClaimXEN.mockResolvedValue({ hash: '0xclaimXEN123', wait: mockWait });
+    mockClaimXENTo.mockResolvedValue({ hash: '0xclaimXENTo123', wait: mockWait });
     mockWait.mockResolvedValue({ status: 1 });
   });
 
@@ -509,4 +512,61 @@ describe('VaultStaking Transactions', () => {
       expect(screen.getByText(/rejected|error|failed/i)).toBeInTheDocument();
     });
   });
+
+  it('should toggle custom recipient inputs and populate with Use Mine button', async () => {
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    const customToggle = screen.getByText('Custom Address');
+    fireEvent.click(customToggle);
+
+    const recipientInput = screen.getByPlaceholderText('0x... recipient address') as HTMLInputElement;
+    expect(recipientInput).toBeInTheDocument();
+    // Initially auto-populated with user's address
+    expect(recipientInput.value).toBe(mockWalletContext.address);
+
+    // Change input value to something else
+    fireEvent.change(recipientInput, { target: { value: '0x9999999999999999999999999999999999999999' } });
+    expect(recipientInput.value).toBe('0x9999999999999999999999999999999999999999');
+
+    // Click "Use Mine" button to reset to user's address
+    const useMineBtn = screen.getByText('Use Mine');
+    fireEvent.click(useMineBtn);
+    expect(recipientInput.value).toBe(mockWalletContext.address);
+  });
+
+  it('should show Claim Withdrawal button and call withdrawCooldown when releaseTime has passed', async () => {
+    (useProtocol as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...mockProtocolContext,
+      userData: {
+        ...mockProtocolContext.userData,
+        cooldownRequest: {
+          amount: 50000000000000000000n, // 50 NXD
+          releaseTime: Math.floor(Date.now() / 1000) - 100, // already passed
+        },
+      },
+    });
+
+    render(
+      React.createElement(VaultStaking, {
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
+
+    expect(screen.getByText('Cooldown has passed. You can claim your funds!')).toBeInTheDocument();
+    const claimWithdrawalBtn = screen.getByText('Claim Withdrawal');
+    expect(claimWithdrawalBtn).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(claimWithdrawalBtn);
+    });
+
+    expect(mockWithdrawCooldown).toHaveBeenCalled();
+  });
+
 });

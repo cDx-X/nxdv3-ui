@@ -36,9 +36,14 @@ vi.mock('chart.js', () => ({
   Legend: {},
 }));
 
+let capturedChartProps: any = [];
+
 // Mock react-chartjs-2
 vi.mock('react-chartjs-2', () => ({
-  Bar: () => React.createElement('div', null, 'BarChart'),
+  Bar: (props: any) => {
+    capturedChartProps.push(props);
+    return React.createElement('div', null, 'BarChart');
+  },
 }));
 
 // Mock vaultRewards
@@ -145,5 +150,41 @@ describe('VaultRewardsChart', () => {
     await waitFor(() => {
       expect(screen.queryByText(/Loading rewards history/)).not.toBeInTheDocument();
     });
+  });
+  it('tests chart options callbacks and tick formatting correctly', async () => {
+    capturedChartProps = [];
+    (fetchVaultRewards as any).mockResolvedValue([
+      { epoch: 1, date: '2025-01-01', ethWei: 1000000000000000000n, xenWei: 2000000000000000000000n },
+    ]);
+
+    render(React.createElement(VaultRewardsChart));
+
+    await waitFor(() => {
+      expect(capturedChartProps.length).toBeGreaterThanOrEqual(2);
+    });
+
+    // Check ETH chart options (first chart)
+    const ethChartProps = capturedChartProps[0];
+    const ethOptions = ethChartProps.options;
+    const ethTooltipLabel = ethOptions.plugins.tooltip.callbacks.label({
+      dataset: { label: 'ETH Inflow' },
+      parsed: { y: 1.23456789 },
+    });
+    expect(ethTooltipLabel).toContain('ETH Inflow:');
+    expect(ethTooltipLabel).toContain('ETH');
+
+    const ethTickFormatter = ethOptions.scales.y.ticks.callback;
+    expect(ethTickFormatter(2500000)).toBe('2.5M');
+    expect(ethTickFormatter(3500)).toBe('3.5k');
+    expect(ethTickFormatter(0.5)).toBe('0.500');
+
+    // Check XEN chart options (second chart)
+    const xenChartProps = capturedChartProps[1];
+    const xenOptions = xenChartProps.options;
+    const xenTickFormatter = xenOptions.scales.y.ticks.callback;
+    expect(xenTickFormatter(2000000000)).toBe('2.0B');
+    expect(xenTickFormatter(5000000)).toBe('5.0M');
+    expect(xenTickFormatter(1500)).toBe('1.5k');
+    expect(xenTickFormatter(42)).toBe('42');
   });
 });

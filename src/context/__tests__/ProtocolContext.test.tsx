@@ -40,6 +40,10 @@ const TestComponent: React.FC = () => {
       <div data-testid="global-minted">{globalData.totalMinted.toString()}</div>
       <div data-testid="user-loaded">{userData.isLoaded ? 'true' : 'false'}</div>
       <div data-testid="user-dxn">{userData.dxnBalance.toString()}</div>
+      <div data-testid="user-nxd">{userData.nxdBalance.toString()}</div>
+      <div data-testid="user-staked">{userData.stakedBalance.toString()}</div>
+      <div data-testid="user-cooldown-amount">{userData.cooldownRequest ? userData.cooldownRequest.amount.toString() : 'none'}</div>
+      <div data-testid="user-cooldown-release">{userData.cooldownRequest ? userData.cooldownRequest.releaseTime.toString() : 'none'}</div>
       <div data-testid="loading">{isLoadingGlobal ? 'true' : 'false'}</div>
       <button onClick={() => refreshAll(true)}>Refresh</button>
     </div>
@@ -193,5 +197,71 @@ describe('ProtocolContext', () => {
     vi.advanceTimersByTime(1000);
 
     expect(mockMulticall.mock.calls.length).toBeGreaterThanOrEqual(initialCallCount);
+  });
+  it('should fallback to initial global state when localStorage contains invalid JSON', () => {
+    localStorage.setItem('nxdv3_cached_global_state_v2', 'invalid-json{');
+    mockMulticall.mockResolvedValue([]);
+
+    renderWithProvider({ isConnected: false, address: null });
+
+    expect(screen.getByTestId('global-loaded')).toHaveTextContent('false');
+    expect(screen.getByTestId('global-minted')).toHaveTextContent('0');
+  });
+
+  it('should initialize with cached state from valid localStorage data before network fetch', () => {
+    localStorage.setItem(
+      'nxdv3_cached_global_state_v2',
+      JSON.stringify({
+        totalMinted: '999999',
+        effectiveSupply: '500000',
+        burnedPercentage: 25,
+      })
+    );
+    mockMulticall.mockImplementation(() => new Promise(() => {})); // pending
+
+    renderWithProvider({ isConnected: false, address: null });
+
+    expect(screen.getByTestId('global-loaded')).toHaveTextContent('true');
+    expect(screen.getByTestId('global-minted')).toHaveTextContent('999999');
+  });
+
+  it('should initialize with cached user state including cooldownRequest from localStorage', () => {
+    const testAddr = '0x1234567890123456789012345678901234567890';
+    localStorage.setItem(
+      `nxdv3_cached_user_state_v2_${testAddr.toLowerCase()}`,
+      JSON.stringify({
+        dxnBalance: '150',
+        nxdBalance: '250',
+        stakedBalance: '350',
+        pendingETH: '10',
+        pendingXEN: '20',
+        cooldownRequest: {
+          amount: '75',
+          releaseTime: 1700000000,
+        },
+      })
+    );
+    mockMulticall.mockImplementation(() => new Promise(() => {})); // pending
+
+    renderWithProvider({ isConnected: true, address: testAddr });
+
+    expect(screen.getByTestId('user-loaded')).toHaveTextContent('true');
+    expect(screen.getByTestId('user-dxn')).toHaveTextContent('150');
+    expect(screen.getByTestId('user-nxd')).toHaveTextContent('250');
+    expect(screen.getByTestId('user-staked')).toHaveTextContent('350');
+    expect(screen.getByTestId('user-cooldown-amount')).toHaveTextContent('75');
+    expect(screen.getByTestId('user-cooldown-release')).toHaveTextContent('1700000000');
+  });
+
+  it('should fallback to initial user state when user localStorage contains invalid JSON', () => {
+    const testAddr = '0x1234567890123456789012345678901234567890';
+    localStorage.setItem(`nxdv3_cached_user_state_v2_${testAddr.toLowerCase()}`, 'invalid-json{');
+    mockMulticall.mockImplementation(() => new Promise(() => {})); // pending
+
+    renderWithProvider({ isConnected: true, address: testAddr });
+
+    expect(screen.getByTestId('user-loaded')).toHaveTextContent('false');
+    expect(screen.getByTestId('user-dxn')).toHaveTextContent('0');
+    expect(screen.getByTestId('user-cooldown-amount')).toHaveTextContent('none');
   });
 });

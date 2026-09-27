@@ -155,4 +155,66 @@ describe('ProtocolDeposit', () => {
     const dxnElements = screen.getAllByText(/DXNv2/);
     expect(dxnElements.length).toBeGreaterThan(0);
   });
+  it('renders multi-tier breakdown correctly when amount spans multiple tiers', () => {
+    // Current minted = 800 (Tier 1 is 1000). User wants to mint 500 NXD.
+    // Tier 1 gets 200 NXD, Tier 2 gets 300 NXD.
+    (useProtocol as any).mockReturnValue({
+      ...mockProtocolContext,
+      globalData: {
+        ...mockProtocolContext.globalData,
+        currentRate: 1000000000000000000n,
+        nxdMintedViaDeposit: 800000000000000000000n,
+        maxMintableDeposit: 3000000000000000000000n,
+        tierSize: 1000000000000000000000n,
+      },
+      userData: {
+        ...mockProtocolContext.userData,
+        dxnAllowance: 10000000000000000000000n,
+      },
+    });
+
+    render(
+      React.createElement(ProtocolDeposit, {
+        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
+        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576",
+      })
+    );
+
+    const input = screen.getByPlaceholderText(/0.0 NXDv3/);
+    input.focus();
+    // Simulate typing 500 NXD
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value'
+    )!.set!;
+    nativeInputValueSetter.call(input, '500');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(screen.getByText(/Estimated tokens to mint:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tier 1/i)).toBeInTheDocument();
+  });
+
+  it('automatically sets depositMode to nomint when minting is finished', () => {
+    // Minted equals max mintable deposit
+    (useProtocol as any).mockReturnValue({
+      ...mockProtocolContext,
+      globalData: {
+        ...mockProtocolContext.globalData,
+        nxdMintedViaDeposit: 3000000000000000000000n,
+        maxMintableDeposit: 3000000000000000000000n,
+        tierSize: 1000000000000000000000n,
+      },
+    });
+
+    render(
+      React.createElement(ProtocolDeposit, {
+        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
+        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576",
+      })
+    );
+
+    const depositMintBtn = screen.getByRole('button', { name: /^Deposit & Mint$/i });
+    expect(depositMintBtn).toBeDisabled();
+    expect(screen.getByPlaceholderText(/0.0 DXNv2/)).toBeInTheDocument();
+  });
 });

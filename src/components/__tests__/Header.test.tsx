@@ -435,5 +435,77 @@ describe('Header', () => {
     expect(connectWallet).toHaveBeenCalledTimes(1);
   });
 
+  it('handles mobile drawer navigation to QR modal and home page', () => {
+    const onGoHome = vi.fn();
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome,
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    fireEvent.click(menuToggle);
+
+    // Click QR modal option
+    const qrBtn = screen.getByText('Mobile QR Code (Connect)');
+    fireEvent.click(qrBtn);
+    expect(screen.getByText('Mobile Connection (QR)')).toBeInTheDocument();
+
+    // Close QR modal
+    fireEvent.click(screen.getByTitle('Close'));
+
+    // Open drawer again and click home logo inside drawer
+    fireEvent.click(menuToggle);
+    const drawerLogoBtn = container.querySelector('.mobile-drawer-header button[aria-label="Go to home page"]') as HTMLElement;
+    fireEvent.click(drawerLogoBtn);
+    expect(onGoHome).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles mobile drawer links for NXDv3 and DXNv2', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+
+    // Click Dexscreener link inside drawer
+    const dexLink = screen.getByRole('link', { name: /Dexscreener/i });
+    fireEvent.click(dexLink);
+    expect(drawer).not.toHaveClass('open');
+  });
+
+  it('closes mobile drawer when DXNv2 links (Uniswap, dbXen) are clicked', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+
+    // Test clicking dbXen v2 Vercel
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+    const vercelLink = screen.getByRole('link', { name: /dbXen v2 Vercel/i });
+    fireEvent.click(vercelLink);
+    expect(drawer).not.toHaveClass('open');
+
+    // Test clicking dbXen v2 App
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+    const appLink = screen.getByRole('link', { name: /dbXen v2 App/i });
+    fireEvent.click(appLink);
+    expect(drawer).not.toHaveClass('open');
+  });
+
 
 });
