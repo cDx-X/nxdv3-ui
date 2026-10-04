@@ -18,7 +18,7 @@ A decentralized finance (DeFi) application for interacting with the NXDv3 Protoc
 - **Blockchain:** ethers.js v6, Multicall3 for batch RPC calls
 - **Wallet:** Reown AppKit, ethers adapter
 - **Charts:** Chart.js, react-chartjs-2
-- **Testing:** Vitest, Testing Library
+- **Testing:** Vitest, Testing Library, Playwright
 - **Code Quality:** ESLint, Prettier, Knip
 
 ## Getting Started
@@ -61,6 +61,14 @@ npm run preview
 
 ### Testing
 
+The suite has three layers:
+
+| Layer | Tool | Location | Purpose |
+| :--- | :--- | :--- | :--- |
+| Unit / component | Vitest + Testing Library | `src/**/__tests__/` | Isolated components and utilities with mocked contracts |
+| Integration (flow) | Vitest + Testing Library + `chainSim` | `src/integration/__tests__/` | Multi-step user journeys (connect → approve → deposit/stake) against a simulated chain |
+| End-to-end | Playwright | `e2e/` | Real browser against the Vite dev server |
+
 ```bash
 # Run tests in watch mode
 npm test
@@ -70,11 +78,34 @@ npm run test:run
 
 # Generate coverage report
 npm run test:coverage
+
+# Browser end-to-end suite (see e2e/README.md for the one-time browser install)
+npm run test:e2e
+
+# Playwright interactive UI mode
+npm run test:e2e:ui
+```
+
+The integration harness (`src/integration/harness/`) replaces `ethers.Contract` and the
+`WalletContext` / `ProtocolContext` hooks with an in-memory chain that tracks balances,
+allowances, stakes, rewards and the withdrawal cooldown. Transactions are mined
+explicitly, so tests can assert both the pending screen (`Approving...`) and the
+post-confirmation state:
+
+```ts
+chain.reset({ dxnBalance: e18(1000) });
+await connectWallet();          // publishes wallet state to the components
+await changeInput(screen.getByPlaceholderText('0.0 NXDv3'), '100');
+await click(screen.getByRole('button', { name: /Approve DXNv2 for Protocol/ }));
+expect(chain.pending[0]?.method).toBe('approve');
+await minePending();            // finalises the block
+expect(chain.state.dxnAllowance).toBe(e18(1_000_000_000));
 ```
 
 ## Project Structure
 
 ```
+├── e2e/                     # Playwright specs (browser level)
 ├── src/
 │   ├── components/          # React UI components
 │   │   ├── __tests__/       # Component tests
@@ -87,6 +118,7 @@ npm run test:coverage
 │   ├── context/             # React context providers
 │   │   ├── ProtocolContext.tsx
 │   │   └── WalletContext.tsx
+│   ├── integration/         # Cross-component flow tests + chain simulator harness
 │   ├── utils/               # Utility functions
 │   │   ├── multicall.ts     # Multicall3 batch calls
 │   │   ├── rpcProvider.ts   # RPC failover handling
@@ -96,6 +128,7 @@ npm run test:coverage
 │   └── App.tsx              # Main application entry
 ├── public/                  # Static assets
 ├── vercel.json              # Vercel deployment config
+├── playwright.config.ts     # Playwright configuration
 ├── vite.config.ts           # Vite configuration
 ├── vitest.config.ts         # Vitest configuration
 └── package.json

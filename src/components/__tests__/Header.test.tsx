@@ -507,5 +507,100 @@ describe('Header', () => {
     expect(drawer).not.toHaveClass('open');
   });
 
+  it('disconnects wallet from inside the mobile drawer', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
 
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+
+    const disconnectBtn = screen.getByRole('button', { name: /Disconnect Wallet/i });
+    fireEvent.click(disconnectBtn);
+
+    expect(mockWalletContext.disconnectWallet).toHaveBeenCalled();
+    expect(drawer).not.toHaveClass('open');
+  });
+
+  it('switches network from inside the mobile drawer', () => {
+    const switchNetworkMock = vi.fn();
+    (useWallet as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...mockWalletContext,
+      switchNetwork: switchNetworkMock,
+    });
+
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+    fireEvent.click(menuToggle);
+
+    const baseBtn = screen.getByRole('button', { name: /Base/i });
+    fireEvent.click(baseBtn);
+
+    expect(switchNetworkMock).toHaveBeenCalledWith(8453);
+    expect(drawer).not.toHaveClass('open');
+  });
+
+  it('handles connecting state and cancel tap inside mobile drawer when disconnected', () => {
+    const disconnectMock = vi.fn();
+    (useWallet as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...mockWalletContext,
+      isConnected: false,
+      isConnecting: true,
+      disconnectWallet: disconnectMock,
+    });
+
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+    fireEvent.click(menuToggle);
+
+    const cancelBtn = drawer.querySelector('.btn.btn-connect') as HTMLElement;
+    fireEvent.click(cancelBtn);
+
+    expect(disconnectMock).toHaveBeenCalled();
+    expect(drawer).not.toHaveClass('open');
+  });
+
+  it('closes mobile drawer and dropdowns on Escape key and window resize', () => {
+    const { container } = render(
+      React.createElement(Header, {
+        onOpenCharts: vi.fn(),
+        onGoHome: vi.fn(),
+      })
+    );
+
+    const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
+    const drawer = container.querySelector('.mobile-nav-drawer') as HTMLElement;
+
+    // Open drawer and press Escape
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(drawer).not.toHaveClass('open');
+
+    // Open drawer and trigger resize > 900px
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+    window.innerWidth = 1024;
+    fireEvent(window, new Event('resize'));
+    expect(drawer).not.toHaveClass('open');
+  });
 });

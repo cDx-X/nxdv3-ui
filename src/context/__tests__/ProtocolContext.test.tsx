@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import React from 'react';
 
 vi.mock('../../utils/multicall', () => ({
@@ -78,7 +78,7 @@ describe('ProtocolContext', () => {
   });
 
   it('should render with initial empty state', () => {
-    mockMulticall.mockResolvedValue([]);
+    mockMulticall.mockImplementation(() => new Promise(() => {}));
     renderWithProvider({ isConnected: false, address: null });
     expect(screen.getByTestId('global-loaded')).toHaveTextContent('false');
     expect(screen.getByTestId('user-loaded')).toHaveTextContent('false');
@@ -150,7 +150,9 @@ describe('ProtocolContext', () => {
 
     const initialCallCount = mockMulticall.mock.calls.length;
     const refreshButton = screen.getByText('Refresh');
-    refreshButton.click();
+    act(() => {
+      refreshButton.click();
+    });
 
     await waitFor(() => {
       expect(mockMulticall.mock.calls.length).toBeGreaterThan(initialCallCount);
@@ -191,16 +193,17 @@ describe('ProtocolContext', () => {
     renderWithProvider();
 
     const initialCallCount = mockMulticall.mock.calls.length;
-    window.dispatchEvent(new Event('focus'));
-
-    // Advance timer past debounce (800ms)
-    vi.advanceTimersByTime(1000);
+    await act(async () => {
+      window.dispatchEvent(new Event('focus'));
+      vi.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
 
     expect(mockMulticall.mock.calls.length).toBeGreaterThanOrEqual(initialCallCount);
   });
   it('should fallback to initial global state when localStorage contains invalid JSON', () => {
     localStorage.setItem('nxdv3_cached_global_state_v2', 'invalid-json{');
-    mockMulticall.mockResolvedValue([]);
+    mockMulticall.mockImplementation(() => new Promise(() => {}));
 
     renderWithProvider({ isConnected: false, address: null });
 

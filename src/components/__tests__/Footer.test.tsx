@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 
 // Mock lucide-react
@@ -177,4 +177,39 @@ describe('Footer', () => {
     expect(screen.queryByTestId('mock-terms-modal')).not.toBeInTheDocument();
   });
 
+  it('copies contract address to clipboard, updates icon and resets after timeout', () => {
+    vi.useFakeTimers();
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    render(React.createElement(Footer));
+
+    const copyButtons = screen.getAllByTitle('Copy address');
+    expect(copyButtons.length).toBeGreaterThan(0);
+
+    // Initial state: rendered Copy icon
+    expect(screen.queryByText('Check')).not.toBeInTheDocument();
+
+    // Click the first copy button (protocol)
+    act(() => {
+      fireEvent.click(copyButtons[0]);
+    });
+
+    expect(writeTextMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Check')).toBeInTheDocument();
+
+    // Fast-forward 2 seconds
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    // Icon reverts back
+    expect(screen.queryByText('Check')).not.toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
 });

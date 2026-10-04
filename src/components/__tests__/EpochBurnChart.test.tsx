@@ -43,6 +43,7 @@ describe('EpochBurnChart', () => {
   });
 
   it('renders chart with title', () => {
+    mockMulticall.mockReturnValue(new Promise(() => {}));
     render(React.createElement(EpochBurnChart, {
       nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
     }));
@@ -61,6 +62,7 @@ describe('EpochBurnChart', () => {
   });
 
   it('shows first burn date label', () => {
+    mockMulticall.mockReturnValue(new Promise(() => {}));
     render(React.createElement(EpochBurnChart, {
       nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
     }));
@@ -69,6 +71,7 @@ describe('EpochBurnChart', () => {
   });
 
   it('shows current epoch label', () => {
+    mockMulticall.mockReturnValue(new Promise(() => {}));
     render(React.createElement(EpochBurnChart, {
       nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
     }));
@@ -77,6 +80,7 @@ describe('EpochBurnChart', () => {
   });
 
   it('shows total burned label', () => {
+    mockMulticall.mockReturnValue(new Promise(() => {}));
     render(React.createElement(EpochBurnChart, {
       nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
     }));
@@ -96,6 +100,42 @@ describe('EpochBurnChart', () => {
     expect(screen.getByText('Ep #0')).toBeInTheDocument();
     expect(screen.getByText('Ep #1')).toBeInTheDocument();
     expect(screen.getByText('Ep #2')).toBeInTheDocument();
+  });
+
+  it('does not render epoch dates under the bars (only the epoch number)', () => {
+    mockMulticall.mockReturnValue(new Promise(() => {}));
+    const cachedData = {
+      firstBurnDateFormatted: '2023-11-15 UTC',
+      currentEpochNum: 5,
+      totalBurnedEth: 500,
+      epochs: [
+        {
+          epochIndex: 0,
+          startDateFormatted: '2023-11-15 UTC',
+          startTimestamp: 1700000000,
+          burnedAmountEth: 100,
+          isCurrentEpoch: false,
+        },
+        {
+          epochIndex: 5,
+          startDateFormatted: '2023-12-20 UTC',
+          startTimestamp: 1703000000,
+          burnedAmountEth: 400,
+          isCurrentEpoch: true,
+        },
+      ],
+    };
+    localStorage.setItem('nxdv3_epoch_burn_cache_v3', JSON.stringify(cachedData));
+
+    render(React.createElement(EpochBurnChart, {
+      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
+    }));
+
+    // Epoch number labels stay under the bars
+    expect(screen.getByText('Ep #0')).toBeInTheDocument();
+    expect(screen.getByText('Ep #5')).toBeInTheDocument();
+    // The per-epoch date is no longer rendered under the bars
+    expect(screen.queryByText(/2023-12-20/)).not.toBeInTheDocument();
   });
 
   it('shows hovered epoch details on mouse enter and clears on mouse leave', async () => {
@@ -118,6 +158,7 @@ describe('EpochBurnChart', () => {
   });
 
   it('loads and uses cached epoch data from localStorage', () => {
+    mockMulticall.mockReturnValue(new Promise(() => {}));
     const cachedData = {
       firstBurnDateFormatted: '2023-11-15 UTC',
       currentEpochNum: 5,

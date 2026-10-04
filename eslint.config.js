@@ -79,5 +79,30 @@ export default [
       },
     },
   },
+  {
+    files: ['e2e/**/*.ts', 'playwright.config.ts'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+      },
+    },
+    rules: {
+      // Playwright specs use type-only imports; the TS compiler is the source of
+      // truth for unused bindings there (the browser specs are outside `src`).
+      'no-unused-vars': 'off',
+    },
+  },
   prettierConfig,
 ];

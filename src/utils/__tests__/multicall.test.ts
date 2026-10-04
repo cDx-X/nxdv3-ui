@@ -14,6 +14,9 @@ vi.mock('ethers', () => {
     return {
       encodeFunctionData: vi.fn().mockReturnValue('0x1234'),
       decodeFunctionResult: vi.fn().mockImplementation((method, data) => {
+        if (method === 'invalidFunction') {
+          throw new Error('Failed to decode');
+        }
         if (method === 'aggregate3') {
           // Return the data as-is for processing
           return [[{ success: true, returnData: data }]];
@@ -145,8 +148,26 @@ describe('multicall', () => {
     expect(mockProvider.call).toHaveBeenCalled();
   });
 
+  it('should return { success: false, result: null } when call fails or returns 0x', async () => {
+    const calls: MulticallCall[] = [
+      {
+        target: '0x1234567890123456789012345678901234567890',
+        abi: ['function balanceOf(address) view returns (uint256)'],
+        functionName: 'balanceOf',
+        args: ['0x0000000000000000000000000000000000000001'],
+      },
+    ];
+
+    const mockProvider = {
+      call: vi.fn().mockResolvedValue('0x'),
+    };
+
+    const result = await multicall(calls, mockProvider as any);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({ success: false, result: null });
+  });
+
   it('should handle decode errors gracefully', async () => {
-    // This test verifies that the multicall function handles decode errors
     const calls: MulticallCall[] = [
       {
         target: '0x1234567890123456789012345678901234567890',
@@ -155,12 +176,13 @@ describe('multicall', () => {
       },
     ];
 
-    (executeWithRpcFailover as any).mockResolvedValue([
-      { success: true, result: 100n },
-    ]);
+    const mockProvider = {
+      call: vi.fn().mockResolvedValue('0x9999'),
+    };
 
-    const result = await multicall(calls);
+    const result = await multicall(calls, mockProvider as any);
     expect(result).toHaveLength(1);
-    // The result depends on the mock implementation
+    expect(result[0].success).toBe(false);
+    expect(result[0].result).toBeNull();
   });
 });

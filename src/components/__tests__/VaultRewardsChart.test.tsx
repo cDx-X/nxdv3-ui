@@ -123,6 +123,42 @@ describe('VaultRewardsChart', () => {
     });
   });
 
+  it('removes epoch dates from the x-axis while keeping them in the tooltip', async () => {
+    capturedChartProps = [];
+    (fetchVaultRewards as any).mockResolvedValue([
+      { epoch: 1, date: '2025-01-01', ethWei: 1000000000000000000n, xenWei: 2000000000000000000000n },
+      { epoch: 2, date: '2025-01-08', ethWei: 2000000000000000000n, xenWei: 3000000000000000000000n },
+    ]);
+
+    render(React.createElement(VaultRewardsChart));
+
+    await waitFor(() => {
+      expect(capturedChartProps.length).toBeGreaterThanOrEqual(2);
+    });
+
+    // Use the latest captured props for each chart
+    const ethProps = [...capturedChartProps]
+      .reverse()
+      .find((p) => p.data.datasets[0].label === 'ETH Inflow');
+    const xenProps = [...capturedChartProps]
+      .reverse()
+      .find((p) => p.data.datasets[0].label === 'XEN Inflow');
+
+    // Dates are no longer shown on the x-axis under the bars
+    expect(ethProps.data.labels).toEqual(['Ep #1', 'Ep #2']);
+    expect(ethProps.data.labels.join(' ')).not.toContain('2025-01-01');
+    expect(xenProps.data.labels).toEqual(['Ep #1', 'Ep #2']);
+
+    // The date is still available in the hover tooltip title
+    const ethTooltipTitle = ethProps.options.plugins.tooltip.callbacks.title([{ dataIndex: 0 }]);
+    expect(ethTooltipTitle).toContain('Ep #1');
+    expect(ethTooltipTitle).toContain('2025-01-01');
+
+    const xenTooltipTitle = xenProps.options.plugins.tooltip.callbacks.title([{ dataIndex: 1 }]);
+    expect(xenTooltipTitle).toContain('Ep #2');
+    expect(xenTooltipTitle).toContain('2025-01-08');
+  });
+
   it('shows error message if fetch fails', async () => {
     (fetchVaultRewards as any).mockRejectedValue(new Error('Network error'));
 

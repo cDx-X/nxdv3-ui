@@ -105,5 +105,23 @@ describe('rpcProvider', () => {
       await expect(executeWithRpcFailover(fn, 10, 2)).rejects.toThrow('timeout');
       expect(fn).toHaveBeenCalledTimes(2);
     });
+
+    it('should handle 429 rate-limiting error and fail over to another RPC endpoint', async () => {
+      const urlsTried: string[] = [];
+      const fn = vi.fn().mockImplementation((_provider, url) => {
+        urlsTried.push(url);
+        if (urlsTried.length === 1) {
+          return Promise.reject(new Error('429 Too Many Requests: Rate limit exceeded'));
+        }
+        return Promise.resolve('recovered-from-429');
+      });
+
+      const result = await executeWithRpcFailover(fn, 10, 2);
+      expect(result).toBe('recovered-from-429');
+      expect(fn).toHaveBeenCalledTimes(2);
+      expect(urlsTried.length).toBe(2);
+      // Ensure it tried two different endpoints
+      expect(urlsTried[0]).not.toBe(urlsTried[1]);
+    });
   });
 });

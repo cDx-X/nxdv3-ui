@@ -400,7 +400,7 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
                         className="epoch-bar-label"
                         style={{
                           position: 'absolute',
-                          bottom: '-28px',
+                          bottom: '-20px',
                           textAlign: 'center',
                           display: 'flex',
                           flexDirection: 'column',
@@ -415,15 +415,6 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
                           }}
                         >
                           Ep #{ep.epochIndex}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '0.60rem',
-                            color: 'var(--text-secondary)',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {ep.startDateFormatted.replace(' UTC', '')}
                         </span>
                       </div>
                     </div>

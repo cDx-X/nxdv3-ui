@@ -24,7 +24,12 @@ const AXIS_COLORS = {
   xen: '#facc15',
 };
 
-function buildOptions(color: string, unitLabel: string, formatTick: (v: number) => string) {
+function buildOptions(
+  color: string,
+  unitLabel: string,
+  formatTick: (v: number) => string,
+  formatTooltipTitle?: (dataIndex: number) => string
+) {
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -38,6 +43,12 @@ function buildOptions(color: string, unitLabel: string, formatTick: (v: number) 
         borderWidth: 1,
         padding: 10,
         callbacks: {
+          ...(formatTooltipTitle
+            ? {
+                title: (items: any[]) =>
+                  items.length > 0 ? formatTooltipTitle(items[0].dataIndex) : '',
+              }
+            : {}),
           label: (context: any) =>
             ` ${context.dataset.label}: ${Number(context.parsed.y).toLocaleString(undefined, {
               maximumFractionDigits: 6,
@@ -153,7 +164,7 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
 
   const ethChartData = useMemo(
     () => ({
-      labels: ethVisible.map((d) => `Ep #${d.epoch} (${d.date})`),
+      labels: ethVisible.map((d) => `Ep #${d.epoch}`),
       datasets: [
         {
           label: 'ETH Inflow',
@@ -171,7 +182,7 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
 
   const xenChartData = useMemo(
     () => ({
-      labels: xenVisible.map((d) => `Ep #${d.epoch} (${d.date})`),
+      labels: xenVisible.map((d) => `Ep #${d.epoch}`),
       datasets: [
         {
           label: 'XEN Inflow',
@@ -187,8 +198,26 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
     [xenVisible]
   );
 
-  const ethOptions = useMemo(() => buildOptions(AXIS_COLORS.eth, 'ETH', formatEthTick), []);
-  const xenOptions = useMemo(() => buildOptions(AXIS_COLORS.xen, 'XEN', formatXenTick), []);
+  const ethOptions = useMemo(
+    () =>
+      buildOptions(
+        AXIS_COLORS.eth,
+        'ETH',
+        formatEthTick,
+        (i) => (ethVisible[i] ? `Ep #${ethVisible[i].epoch} (${ethVisible[i].date})` : '')
+      ),
+    [ethVisible]
+  );
+  const xenOptions = useMemo(
+    () =>
+      buildOptions(
+        AXIS_COLORS.xen,
+        'XEN',
+        formatXenTick,
+        (i) => (xenVisible[i] ? `Ep #${xenVisible[i].epoch} (${xenVisible[i].date})` : '')
+      ),
+    [xenVisible]
+  );
 
   const lastIdx = Math.max(0, daily.length - 1);
 

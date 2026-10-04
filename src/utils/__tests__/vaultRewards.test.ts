@@ -47,6 +47,47 @@ describe('vaultRewards', () => {
       expect(multicall).not.toHaveBeenCalled();
     });
 
+    it('should ignore cache and re-fetch if cache timestamp is expired', async () => {
+      localStorage.setItem(
+        'nxdv3_vault_rewards_cache_v2',
+        JSON.stringify({
+          currentEpoch: 1,
+          daily: [{ epoch: 0, date: '2024-01-01', startTime: 1704067200, ethWei: '1', xenWei: '0' }],
+          updatedAt: Date.now() - 120000, // 2 minutes ago (expired)
+        })
+      );
+
+      const mockResult = [
+        { success: true, result: 1n },
+        { success: true, result: 1704067200n },
+        {
+          success: true,
+          result: [{ epoch: 0, startTime: 1704067200, ethAmount: 5000n, xenAmount: 0n }],
+        },
+      ];
+      (multicall as any).mockResolvedValue(mockResult);
+
+      const result = await fetchVaultRewards(false);
+      expect(multicall).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0].ethWei).toBe('5000');
+    });
+
+    it('should handle malformed JSON in localStorage gracefully', async () => {
+      localStorage.setItem('nxdv3_vault_rewards_cache_v2', '{invalid-json');
+
+      const mockResult = [
+        { success: true, result: 1n },
+        { success: true, result: 1704067200n },
+        { success: true, result: [] },
+      ];
+      (multicall as any).mockResolvedValue(mockResult);
+
+      const result = await fetchVaultRewards(false);
+      expect(multicall).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+    });
+
     it('should fetch from contract if cache is expired', async () => {
       const mockResult = [
         { success: true, result: 5n },
