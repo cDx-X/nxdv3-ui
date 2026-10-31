@@ -221,6 +221,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome, onOpenPr
             </button>
           </div>
 
+          <button
+            className="btn btn-secondary"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.85rem',
+              padding: '6px 14px',
+              borderColor: 'var(--accent-gold)',
+              color: 'var(--accent-gold)',
+            }}
+            onClick={() => setIsQrModalOpen(true)}
+            title="Scan QR Code to open on phone"
+          >
+            <QrCode size={16} className="icon-gold" />
+            <span>Mobile QR</span>
+          </button>
+
           {/* Network Switcher Dropdown */}
           <div className="dropdown-container" ref={networkDropdownRef}>
             <button
@@ -250,24 +268,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome, onOpenPr
               />
             </button>
           </div>
-
-          <button
-            className="btn btn-secondary"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.85rem',
-              padding: '6px 14px',
-              borderColor: 'var(--accent-gold)',
-              color: 'var(--accent-gold)',
-            }}
-            onClick={() => setIsQrModalOpen(true)}
-            title="Scan QR Code to open on phone"
-          >
-            <QrCode size={16} className="icon-gold" />
-            <span>Mobile QR</span>
-          </button>
 
           {isConnected && address ? (
             <div className="wallet-connected-group">
