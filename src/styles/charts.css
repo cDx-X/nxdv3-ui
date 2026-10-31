@@ -6,10 +6,9 @@
 }
 
 .epochs-charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(540px, 1fr));
-  align-items: stretch;
-  gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   width: 100%;
   margin-bottom: 3rem;
 }
@@ -23,8 +22,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  height: auto;
-  overflow: visible;
+  width: 100%;
   box-sizing: border-box;
 }
 

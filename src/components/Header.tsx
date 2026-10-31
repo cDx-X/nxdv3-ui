@@ -15,15 +15,17 @@ import {
   Coins,
   QrCode,
   AlertTriangle,
+  Cpu,
 } from 'lucide-react';
 import { WebsiteQRCodeModal } from './WebsiteQRCodeModal';
 
 interface HeaderProps {
   onOpenCharts: () => void;
   onGoHome?: () => void;
+  onOpenProcessor?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome, onOpenProcessor }) => {
   const {
     address,
     isConnected,
@@ -148,6 +150,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome }) => {
           >
             <BarChart3 size={16} className="icon-blue" />
             <span>Charts</span>
+          </button>
+
+          <button
+            className="btn btn-secondary"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.85rem',
+              padding: '6px 14px',
+              borderColor: '#f59e0b',
+              color: '#f59e0b',
+            }}
+            onClick={onOpenProcessor}
+          >
+            <Cpu size={16} style={{ color: '#f59e0b' }} />
+            <span>Processor</span>
           </button>
 
           <div className="dropdown-container" ref={getNxdDropdownRef}>

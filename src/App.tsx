@@ -7,6 +7,7 @@ import { VaultStaking } from './components/VaultStaking';
 import { ProtocolStatsWindow } from './components/ProtocolStatsWindow';
 import { ProtocolInfoCard } from './components/ProtocolInfoCard';
 import { Footer } from './components/Footer';
+import { ProcessorModal } from './components/ProcessorModal';
 import { AlertTriangle } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 import './styles.css';
@@ -85,6 +86,7 @@ const MainContent: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<'dashboard' | 'charts'>('dashboard');
+  const [isProcessorModalOpen, setIsProcessorModalOpen] = useState(false);
   const { networkConfig } = useWallet();
   const addresses = networkConfig.addresses;
 
@@ -99,6 +101,7 @@ const AppContent: React.FC = () => {
           setCurrentView('dashboard');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
+        onOpenProcessor={() => setIsProcessorModalOpen(true)}
       />
       {currentView === 'dashboard' ? (
         <MainContent />
@@ -126,6 +129,10 @@ const AppContent: React.FC = () => {
         </Suspense>
       )}
       <Footer />
+      <ProcessorModal
+        isOpen={isProcessorModalOpen}
+        onClose={() => setIsProcessorModalOpen(false)}
+      />
     </div>
   );
 };

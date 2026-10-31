@@ -36,6 +36,11 @@ export const Footer: React.FC = () => {
       name: 'Tax RecipientV3:',
       address: CONTRACT_ADDRESSES.taxRecipientAddress,
     },
+    {
+      key: 'processor',
+      name: 'NXDv3 Processor:',
+      address: CONTRACT_ADDRESSES.processorAddress,
+    },
   ];
 
   const resources = [

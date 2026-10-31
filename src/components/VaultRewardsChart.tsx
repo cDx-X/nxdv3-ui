@@ -229,37 +229,6 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
         </p>
       </div>
 
-      {/* Summary cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-          gap: '0.5rem',
-          width: '100%',
-        }}
-      >
-        <div className="card px-2 py-2.5 flex flex-col min-w-0">
-          <span className="text-xs text-secondary truncate">ETH Sent to Vault (Cumulative)</span>
-          <span className="text-sm font-bold text-emerald-400 mt-1 truncate">
-            {stats.ethToVault.toLocaleString(undefined, {
-              minimumFractionDigits: 4,
-              maximumFractionDigits: 4,
-            })}{' '}
-            ETH
-          </span>
-        </div>
-        <div className="card px-2 py-2.5 flex flex-col min-w-0">
-          <span className="text-xs text-secondary truncate">XEN Sent to Vault (Cumulative)</span>
-          <span className="text-sm font-bold text-yellow-400 mt-1 truncate">
-            {stats.xenSentToVault.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{' '}
-            XEN
-          </span>
-        </div>
-      </div>
-
       {isLoading ? (
         <div className="card p-6 text-center text-secondary">Loading rewards history…</div>
       ) : error ? (
@@ -268,39 +237,100 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
         <div className="card p-6 text-center text-secondary">No reward inflows recorded yet.</div>
       ) : (
         <>
-          {/* ETH chart */}
-          <div className="card p-4 relative flex flex-col epochs-chart-box">
-            <div
-              className="vault-rewards-header"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}
-            >
-              <span style={{ fontSize: '11px', color: AXIS_COLORS.eth, fontWeight: 700 }}>
-                ETH Inflow per 7-Day Epoch
+          {/* ETH chart section */}
+          <div className="flex flex-col gap-3">
+            <div className="card px-2 py-2.5 flex flex-col min-w-0">
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  width: '100%',
+                  whiteSpace: 'nowrap',
+                  textAlign: 'left',
+                  lineHeight: 1.2,
+                }}
+              >
+                ETH Sent to Vault (Cumulative)
+              </span>
+              <span
+                className="text-sm font-bold text-emerald-400 mt-1 truncate"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                {stats.ethToVault.toLocaleString(undefined, {
+                  minimumFractionDigits: 4,
+                  maximumFractionDigits: 4,
+                })}{' '}
+                ETH
               </span>
             </div>
-            <div className="flex-1 min-h-0" style={{ minHeight: '220px' }}>
-              <Bar data={ethChartData as any} options={ethOptions as any} />
-            </div>
-            <div style={{ marginTop: '0.5rem' }}>
-              <RangeSlider min={0} max={lastIdx} value={ethRange} onChange={setEthRange} />
+            <div className="card p-4 relative flex flex-col epochs-chart-box">
+              <div
+                className="vault-rewards-header"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}
+              >
+                <span style={{ fontSize: '11px', color: AXIS_COLORS.eth, fontWeight: 700 }}>
+                  ETH Inflow per 7-Day Epoch
+                </span>
+              </div>
+              <div className="flex-1 min-h-0" style={{ minHeight: '220px' }}>
+                <Bar data={ethChartData as any} options={ethOptions as any} />
+              </div>
+              <div style={{ marginTop: '0.5rem' }}>
+                <RangeSlider min={0} max={lastIdx} value={ethRange} onChange={setEthRange} />
+              </div>
             </div>
           </div>
 
-          {/* XEN chart */}
-          <div className="card p-4 relative flex flex-col epochs-chart-box">
-            <div
-              className="vault-rewards-header"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}
-            >
-              <span style={{ fontSize: '11px', color: AXIS_COLORS.xen, fontWeight: 700 }}>
-                XEN Inflow per 7-Day Epoch
+          {/* Divider line between ETH and XEN sections */}
+          <div style={{ margin: '1.5rem 0', borderTop: '1px solid var(--border-color)' }} />
+
+          {/* XEN chart section */}
+          <div className="flex flex-col gap-3">
+            <div className="card px-2 py-2.5 flex flex-col min-w-0">
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  width: '100%',
+                  whiteSpace: 'nowrap',
+                  textAlign: 'left',
+                  lineHeight: 1.2,
+                }}
+              >
+                XEN Sent to Vault (Cumulative)
+              </span>
+              <span
+                className="text-sm font-bold text-yellow-400 mt-1 truncate"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                {stats.xenSentToVault.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{' '}
+                XEN
               </span>
             </div>
-            <div className="flex-1 min-h-0" style={{ minHeight: '220px' }}>
-              <Bar data={xenChartData as any} options={xenOptions as any} />
-            </div>
-            <div style={{ marginTop: '0.5rem' }}>
-              <RangeSlider min={0} max={lastIdx} value={xenRange} onChange={setXenRange} />
+            <div className="card p-4 relative flex flex-col epochs-chart-box">
+              <div
+                className="vault-rewards-header"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}
+              >
+                <span style={{ fontSize: '11px', color: AXIS_COLORS.xen, fontWeight: 700 }}>
+                  XEN Inflow per 7-Day Epoch
+                </span>
+              </div>
+              <div className="flex-1 min-h-0" style={{ minHeight: '220px' }}>
+                <Bar data={xenChartData as any} options={xenOptions as any} />
+              </div>
+              <div style={{ marginTop: '0.5rem' }}>
+                <RangeSlider min={0} max={lastIdx} value={xenRange} onChange={setXenRange} />
+              </div>
             </div>
           </div>
         </>

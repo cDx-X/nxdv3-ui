@@ -72,76 +72,7 @@ export const EpochChartsPage: React.FC<EpochChartsPageProps> = ({
       </div>
 
       <div className="epochs-charts-grid">
-        {/* Chart Window 1: Epoch Burn */}
-        <div className="epochs-chart-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              borderBottom: '1px solid var(--border-color)',
-              paddingBottom: '0.85rem',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Flame size={22} className="icon-gold" />
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Epoch Burn Dynamics
-              </h3>
-            </div>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowEpochBurnInfo(!showEpochBurnInfo)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 10px',
-                fontSize: '0.8rem',
-              }}
-              title="Toggle Chart Description"
-            >
-              <Info size={14} className="icon-gold" />
-              <span>{showEpochBurnInfo ? 'Hide description' : 'Info'}</span>
-              {showEpochBurnInfo ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-          </div>
-
-          {showEpochBurnInfo && (
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '1rem',
-                fontSize: '0.85rem',
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem',
-              }}
-            >
-              <div>
-                <strong>Type:</strong> Bar Chart
-              </div>
-              <div>
-                <strong>What it shows:</strong> Amount of burned NXDv3 broken down by cycles (Weekly
-                epochs).
-              </div>
-              <div style={{ color: 'var(--text-primary)' }}>
-                <strong>Why it is essential:</strong> NXDv3 is a deflationary token. This chart
-                allows the user to directly assess deflationary pressure and network activity level
-                in a given period. It shows whether deflation is accelerating or decelerating.
-              </div>
-            </div>
-          )}
-
-          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            <EpochBurnChart nxdAddress={nxdAddress} />
-          </div>
-        </div>
-
-        {/* Chart Window 2: Supply Breakdown */}
+        {/* Chart Window 1: Supply & Distribution */}
         <div className="epochs-chart-card">
           <div
             style={{
@@ -216,7 +147,7 @@ export const EpochChartsPage: React.FC<EpochChartsPageProps> = ({
           </div>
         </div>
 
-        {/* Chart Window 3: Mint Tiers */}
+        {/* Chart Window 2: Epoch Burn Dynamics */}
         <div className="epochs-chart-card">
           <div
             style={{
@@ -228,14 +159,14 @@ export const EpochChartsPage: React.FC<EpochChartsPageProps> = ({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Layers size={22} className="icon-gold" />
+              <Flame size={22} className="icon-gold" />
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Minting Tiers
+                Epoch Burn Dynamics
               </h3>
             </div>
             <button
               className="btn btn-secondary"
-              onClick={() => setShowMintInfo(!showMintInfo)}
+              onClick={() => setShowEpochBurnInfo(!showEpochBurnInfo)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -246,12 +177,12 @@ export const EpochChartsPage: React.FC<EpochChartsPageProps> = ({
               title="Toggle Chart Description"
             >
               <Info size={14} className="icon-gold" />
-              <span>{showMintInfo ? 'Hide description' : 'Info'}</span>
-              {showMintInfo ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              <span>{showEpochBurnInfo ? 'Hide description' : 'Info'}</span>
+              {showEpochBurnInfo ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
           </div>
 
-          {showMintInfo && (
+          {showEpochBurnInfo && (
             <div
               style={{
                 background: 'var(--bg-secondary)',
@@ -266,26 +197,26 @@ export const EpochChartsPage: React.FC<EpochChartsPageProps> = ({
               }}
             >
               <div>
-                <strong>Type:</strong> Step Line Chart
+                <strong>Type:</strong> Bar Chart
               </div>
               <div>
-                <strong>What it shows:</strong> Current minting tier, current DXNv2/NXDv3 exchange
-                rate, and DXNv2 demand across upcoming tiers up to Max Rewards Supply.
+                <strong>What it shows:</strong> Amount of burned NXDv3 broken down by cycles (Weekly
+                epochs).
               </div>
               <div style={{ color: 'var(--text-primary)' }}>
-                <strong>Why it is essential:</strong> Users depositing DXNv2 need to know if they
-                are minting under attractive conditions and when tier changes will occur
-                (progression rate). This is a key indicator for the depositor's investment decision.
+                <strong>Why it is essential:</strong> NXDv3 is a deflationary token. This chart
+                allows the user to directly assess deflationary pressure and network activity level
+                in a given period. It shows whether deflation is accelerating or decelerating.
               </div>
             </div>
           )}
 
           <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            <MintingTierChart />
+            <EpochBurnChart nxdAddress={nxdAddress} />
           </div>
         </div>
 
-        {/* Chart Window 4: Vault Rewards */}
+        {/* Chart Window 3: Vault Rewards & Yield */}
         <div className="epochs-chart-card">
           <div
             style={{
@@ -355,6 +286,75 @@ export const EpochChartsPage: React.FC<EpochChartsPageProps> = ({
             }}
           >
             <VaultRewardsChart />
+          </div>
+        </div>
+
+        {/* Chart Window 4: Minting Tiers */}
+        <div className="epochs-chart-card">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid var(--border-color)',
+              paddingBottom: '0.85rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Layers size={22} className="icon-gold" />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Minting Tiers
+              </h3>
+            </div>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowMintInfo(!showMintInfo)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                fontSize: '0.8rem',
+              }}
+              title="Toggle Chart Description"
+            >
+              <Info size={14} className="icon-gold" />
+              <span>{showMintInfo ? 'Hide description' : 'Info'}</span>
+              {showMintInfo ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+          </div>
+
+          {showMintInfo && (
+            <div
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                padding: '1rem',
+                fontSize: '0.85rem',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+              }}
+            >
+              <div>
+                <strong>Type:</strong> Step Line Chart
+              </div>
+              <div>
+                <strong>What it shows:</strong> Current minting tier, current DXNv2/NXDv3 exchange
+                rate, and DXNv2 demand across upcoming tiers up to Max Rewards Supply.
+              </div>
+              <div style={{ color: 'var(--text-primary)' }}>
+                <strong>Why it is essential:</strong> Users depositing DXNv2 need to know if they
+                are minting under attractive conditions and when tier changes will occur
+                (progression rate). This is a key indicator for the depositor's investment decision.
+              </div>
+            </div>
+          )}
+
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <MintingTierChart />
           </div>
         </div>
       </div>

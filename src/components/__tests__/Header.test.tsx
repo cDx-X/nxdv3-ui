@@ -28,6 +28,7 @@ vi.mock('lucide-react', () => ({
   Smartphone: () => React.createElement('span', null, 'Smartphone'),
   Copy: () => React.createElement('span', null, 'Copy'),
   Check: () => React.createElement('span', null, 'Check'),
+  Cpu: () => React.createElement('span', null, 'Cpu'),
 }));
 
 // Mock config

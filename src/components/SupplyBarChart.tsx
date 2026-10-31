@@ -80,7 +80,7 @@ export const SupplyBarChart: React.FC<{
         {/* Left: Doughnut Chart */}
         <div
           className="card p-4 flex flex-col items-center justify-center relative supply-chart-side supply-chart-doughnut"
-          style={{ flex: '1 1 280px', minWidth: '260px' }}
+          style={{ flex: '0 1 300px', maxWidth: '320px' }}
         >
           {!globalData.isLoaded && isLoadingGlobal && (
             <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-10 rounded text-white gap-2">
@@ -88,7 +88,7 @@ export const SupplyBarChart: React.FC<{
               <span>Loading...</span>
             </div>
           )}
-          <div style={{ width: '100%', maxWidth: '280px', height: '220px', position: 'relative' }}>
+          <div style={{ width: '100%', maxWidth: '240px', height: '200px', position: 'relative' }}>
             <Doughnut
               data={cfg}
               options={{
@@ -109,8 +109,8 @@ export const SupplyBarChart: React.FC<{
               flexDirection: 'row',
               flexWrap: 'nowrap',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.4rem',
+              justifyContent: 'center',
+              gap: '1rem',
               marginTop: '0.75rem',
               width: '100%',
               fontSize: '0.75rem',
@@ -165,59 +165,55 @@ export const SupplyBarChart: React.FC<{
           </div>
         </div>
 
-        {/* Right: Vertical Metric Stack */}
+        {/* Right: Horizontal Metric Stack (Side by Side) */}
         <div
-          className="flex flex-col gap-2 supply-chart-side supply-metrics-stack"
+          className="supply-chart-side supply-metrics-stack"
           style={{
-            flex: '1 1 200px',
-            minWidth: '200px',
-            maxWidth: '260px',
-            display: 'flex',
-            flexDirection: 'column',
-            rowGap: '12px',
+            flex: '1 1 420px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+            gap: '0.75rem',
+            width: '100%',
           }}
         >
-          <div className="card px-3 py-1 flex flex-col">
+          <div className="card px-3 py-2 flex flex-col justify-between">
             <span className="text-xs text-secondary flex items-center gap-1.5">
               <Clock size={13} className="text-gray-300" /> Total
             </span>
-            <span className="text-lg font-bold text-white" style={{ marginTop: '0.05rem' }}>
+            <span className="text-base font-bold text-white mt-1">
               {sd.ts.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="card px-3 py-1 flex flex-col">
+          <div className="card px-3 py-2 flex flex-col justify-between">
             <span className="text-xs text-secondary flex items-center gap-1.5">
               <Shield size={13} className="text-blue-400" /> Staked
             </span>
-            <span className="text-lg font-bold text-blue-400" style={{ marginTop: '0.05rem' }}>
+            <span className="text-base font-bold text-blue-400 mt-1">
               {sd.s.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
-            <span className="text-[11px] text-blue-400 font-medium" style={{ marginTop: '0rem' }}>
+            <span className="text-[11px] text-blue-400 font-medium">
               {sd.sR.toFixed(1)}% Ratio
             </span>
           </div>
-          <div className="card px-3 py-1 flex flex-col">
+          <div className="card px-3 py-2 flex flex-col justify-between">
             <span className="text-xs text-secondary flex items-center gap-1.5">
               <Layers size={13} className="text-emerald-400" /> Liquid
             </span>
-            <span className="text-lg font-bold text-emerald-400" style={{ marginTop: '0.05rem' }}>
+            <span className="text-base font-bold text-emerald-400 mt-1">
               {sd.l.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
-            <span
-              className="text-[11px] text-emerald-400 font-medium"
-              style={{ marginTop: '0rem' }}
-            >
+            <span className="text-[11px] text-emerald-400 font-medium">
               {sd.lR.toFixed(1)}% Floating
             </span>
           </div>
-          <div className="card px-3 py-1 flex flex-col">
+          <div className="card px-3 py-2 flex flex-col justify-between">
             <span className="text-xs text-secondary flex items-center gap-1.5">
               <Flame size={13} className="text-yellow-400" /> Burned
             </span>
-            <span className="text-lg font-bold text-yellow-400" style={{ marginTop: '0.05rem' }}>
+            <span className="text-base font-bold text-yellow-400 mt-1">
               {sd.b.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
-            <span className="text-[11px] text-yellow-400 font-medium" style={{ marginTop: '0rem' }}>
+            <span className="text-[11px] text-yellow-400 font-medium">
               {sd.bR.toFixed(1)}% Burned
             </span>
           </div>

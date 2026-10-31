@@ -173,29 +173,29 @@ describe('EpochChartsPage', () => {
     // Initial state: no descriptions rendered
     expect(screen.queryByText(/Deflationary pressure/i)).not.toBeInTheDocument();
 
-    // Toggle 1: Epoch Burn Info
+    // Toggle 1: Supply Info (now index 0)
     fireEvent.click(infoButtons[0]);
-    expect(screen.getByText(/Amount of burned NXDv3 broken down by cycles/i)).toBeInTheDocument();
-    fireEvent.click(infoButtons[0]);
-    expect(screen.queryByText(/Amount of burned NXDv3 broken down by cycles/i)).not.toBeInTheDocument();
-
-    // Toggle 2: Supply Info
-    fireEvent.click(infoButtons[1]);
     expect(screen.getByText(/Breakdown of the total emitted NXDv3 supply/i)).toBeInTheDocument();
-    fireEvent.click(infoButtons[1]);
+    fireEvent.click(infoButtons[0]);
     expect(screen.queryByText(/Breakdown of the total emitted NXDv3 supply/i)).not.toBeInTheDocument();
 
-    // Toggle 3: Mint Info
-    fireEvent.click(infoButtons[2]);
-    expect(screen.getByText(/Current DXNv2\/NXDv3 exchange rate/i)).toBeInTheDocument();
-    fireEvent.click(infoButtons[2]);
-    expect(screen.queryByText(/Current DXNv2\/NXDv3 exchange rate/i)).not.toBeInTheDocument();
+    // Toggle 2: Epoch Burn Info (now index 1)
+    fireEvent.click(infoButtons[1]);
+    expect(screen.getByText(/Amount of burned NXDv3 broken down by cycles/i)).toBeInTheDocument();
+    fireEvent.click(infoButtons[1]);
+    expect(screen.queryByText(/Amount of burned NXDv3 broken down by cycles/i)).not.toBeInTheDocument();
 
-    // Toggle 4: Vault Info
-    fireEvent.click(infoButtons[3]);
+    // Toggle 3: Vault Info (now index 2)
+    fireEvent.click(infoButtons[2]);
     expect(screen.getByText(/Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i)).toBeInTheDocument();
-    fireEvent.click(infoButtons[3]);
+    fireEvent.click(infoButtons[2]);
     expect(screen.queryByText(/Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i)).not.toBeInTheDocument();
+
+    // Toggle 4: Mint Info (now index 3)
+    fireEvent.click(infoButtons[3]);
+    expect(screen.getByText(/Current DXNv2\/NXDv3 exchange rate/i)).toBeInTheDocument();
+    fireEvent.click(infoButtons[3]);
+    expect(screen.queryByText(/Current DXNv2\/NXDv3 exchange rate/i)).not.toBeInTheDocument();
   });
 
   it('triggers onBack when back button is clicked', () => {

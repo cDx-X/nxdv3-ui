@@ -118,6 +118,19 @@ export const HowItWorksPart1: React.FC = () => (
 
     <div className="doc-section">
       <h3>
+        <Cpu size={18} className="icon-gold" /> 🛠️ Protocol Maintenance & Processor Dashboard
+      </h3>
+      <p>
+        To maintain the economic fluidity, automated reward distribution, and operational continuity of the NXDv3 protocol, 
+        regular execution of the functions contained in the <strong>Processor Dashboard</strong> is essential. 
+        Functions such as <code>collectFees()</code>, <code>processRewards()</code>, and <code>processTax()</code> drive the closed-loop 
+        economic flywheel by harvesting protocol revenues, executing reward buybacks and burns, and routing tax liquidity. 
+        Timely processing ensures stakers receive continuous yield and deflationary mechanisms operate smoothly.
+      </p>
+    </div>
+
+    <div className="doc-section">
+      <h3>
         <Lock size={18} className="icon-gold" /> 3. Dual-Stream Staking Vault
       </h3>
       <p>

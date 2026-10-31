@@ -5,7 +5,9 @@ export const NXDv3ProtocolABI = [
   'function currentRate() public view returns (uint256)',
   'function collectFees() public',
   'function processRewards() external',
+  'function processTax() external',
   'function ourClaimableFees() public view returns (uint256)',
+  'function protocolBalance() external view returns (uint256)',
   'function nxdMintedViaDeposit() view returns (uint256)',
   'function totalDXNStaked() view returns (uint256)',
   'function totalDXNBurned() view returns (uint256)',
@@ -99,6 +101,7 @@ export const CONTRACT_ADDRESSES = {
   vaultAddress: '0x80A339925a7d63F71fF4D78D61cE4F4CA94a81eA',
   nxdAddress: '0x8FCADd5Bd76BD7B4C5f1BeBcB3792B336C979c07',
   taxRecipientAddress: '0x45f042890cB43D575A2029930FD4B40Cb751b8eB',
+  processorAddress: '0xf4899A5b0701434f5625C79a8DBee1Dd1A3F827d',
 
   XenAddress: '0xeB585163DEbB1E637c6D617de3bEF99347cd75c8',
 
