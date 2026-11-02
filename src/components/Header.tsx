@@ -368,6 +368,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome, onOpenPr
                   <span>Dexscreener</span>
                   <ExternalLink size={14} className="text-gray" />
                 </a>
+                <a
+                  href="https://www.geckoterminal.com/optimism/pools/0x163dc767d89b9ab90ea336bfbe58a99adce95e3f"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dropdown-item"
+                  onClick={() => setOpenDropdown(null)}
+                >
+                  <span>Gecko Terminal</span>
+                  <ExternalLink size={14} className="text-gray" />
+                </a>
               </>
             )}
 
@@ -635,6 +645,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome, onOpenPr
             >
               <Coins size={16} className="icon-gold" />
               <span>Dexscreener</span>
+              <ExternalLink size={14} className="text-gray" style={{ marginLeft: 'auto' }} />
+            </a>
+            <a
+              href="https://www.geckoterminal.com/optimism/pools/0x163dc767d89b9ab90ea336bfbe58a99adce95e3f"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mobile-drawer-btn"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Coins size={16} className="icon-gold" />
+              <span>Gecko Terminal</span>
               <ExternalLink size={14} className="text-gray" style={{ marginLeft: 'auto' }} />
             </a>
           </div>

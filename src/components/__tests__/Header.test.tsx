@@ -221,7 +221,9 @@ describe('Header', () => {
     expect(drawer).toHaveClass('open');
 
     // Close using close button inside drawer
-    const closeBtn = container.querySelector('.mobile-drawer-header .modal-close-btn') as HTMLElement;
+    const closeBtn = container.querySelector(
+      '.mobile-drawer-header .modal-close-btn'
+    ) as HTMLElement;
     fireEvent.click(closeBtn);
     expect(drawer).not.toHaveClass('open');
   });
@@ -339,9 +341,10 @@ describe('Header', () => {
     const dropdownMenu = container.querySelector('.dropdown-menu');
     expect(dropdownMenu).toBeInTheDocument();
     const dropdownItems = dropdownMenu?.querySelectorAll('a.dropdown-item') || [];
-    expect(dropdownItems.length).toBe(2);
+    expect(dropdownItems.length).toBe(3);
     expect(dropdownItems[0].textContent).toContain('Uniswap');
     expect(dropdownItems[1].textContent).toContain('Dexscreener');
+    expect(dropdownItems[2].textContent).toContain('Gecko Terminal');
 
     fireEvent.click(dropdownItems[0]);
     expect(container.querySelector('.dropdown-menu')).not.toBeInTheDocument();
@@ -430,7 +433,9 @@ describe('Header', () => {
     const menuToggle = container.querySelector('.header-menu-toggle') as HTMLElement;
     fireEvent.click(menuToggle);
 
-    const connectMobileBtn = container.querySelector('.mobile-drawer-content .btn-connect') as HTMLElement;
+    const connectMobileBtn = container.querySelector(
+      '.mobile-drawer-content .btn-connect'
+    ) as HTMLElement;
     expect(connectMobileBtn).toBeInTheDocument();
     fireEvent.click(connectMobileBtn);
     expect(connectWallet).toHaveBeenCalledTimes(1);
@@ -458,7 +463,9 @@ describe('Header', () => {
 
     // Open drawer again and click home logo inside drawer
     fireEvent.click(menuToggle);
-    const drawerLogoBtn = container.querySelector('.mobile-drawer-header button[aria-label="Go to home page"]') as HTMLElement;
+    const drawerLogoBtn = container.querySelector(
+      '.mobile-drawer-header button[aria-label="Go to home page"]'
+    ) as HTMLElement;
     fireEvent.click(drawerLogoBtn);
     expect(onGoHome).toHaveBeenCalledTimes(1);
   });
@@ -479,6 +486,13 @@ describe('Header', () => {
     // Click Dexscreener link inside drawer
     const dexLink = screen.getByRole('link', { name: /Dexscreener/i });
     fireEvent.click(dexLink);
+    expect(drawer).not.toHaveClass('open');
+
+    // Click Gecko Terminal link inside drawer
+    fireEvent.click(menuToggle);
+    expect(drawer).toHaveClass('open');
+    const geckoLink = screen.getByRole('link', { name: /Gecko Terminal/i });
+    fireEvent.click(geckoLink);
     expect(drawer).not.toHaveClass('open');
   });
 
