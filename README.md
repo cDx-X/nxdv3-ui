@@ -186,4 +186,5 @@ If the wallet connection gets stuck on **"Connecting..."** (especially on a phon
 
 ## License
 
-Private - All rights reserved
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
