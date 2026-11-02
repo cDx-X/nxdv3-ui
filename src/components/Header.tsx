@@ -342,8 +342,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome, onOpenPr
               openDropdown === 'nxd'
                 ? getNxdDropdownRef
                 : openDropdown === 'dxn'
-                ? dropdownRef
-                : networkDropdownRef
+                  ? dropdownRef
+                  : networkDropdownRef
             )}
           >
             {openDropdown === 'nxd' && (
@@ -556,7 +556,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCharts, onGoHome, onOpenPr
               </button>
             )}
             {error && (
-              <div className="wallet-error-banner" role="alert" style={{ marginTop: '8px', fontSize: '0.78rem' }}>
+              <div
+                className="wallet-error-banner"
+                role="alert"
+                style={{ marginTop: '8px', fontSize: '0.78rem' }}
+              >
                 <AlertTriangle size={14} style={{ flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{error}</span>
               </div>

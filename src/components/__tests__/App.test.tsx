@@ -90,7 +90,9 @@ describe('App', () => {
     render(React.createElement(App));
     expect(screen.getByText('NXDv3 Protocol & Staking Hub')).toBeInTheDocument();
     expect(screen.getByText('Deflationary DXNv2 Derivative')).toBeInTheDocument();
-    expect(screen.getByText(/Mint and stake NXDv3 tokens on the Optimism network/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mint and stake NXDv3 tokens on the Optimism network/i)
+    ).toBeInTheDocument();
   });
 
   it('switches to charts view when Open Charts button is clicked', async () => {

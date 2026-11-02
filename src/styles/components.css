@@ -574,7 +574,7 @@
   .claim-buttons-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .custom-recipient-input {
     flex-direction: column;
     align-items: stretch;

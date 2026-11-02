@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  fetchVaultRewards,
-  fetchVaultRewardsPaginated,
-  VaultRewardsDay,
-} from '../vaultRewards';
+import { fetchVaultRewards, fetchVaultRewardsPaginated, VaultRewardsDay } from '../vaultRewards';
 import { multicall } from '../multicall';
 
 // Mock multicall
@@ -52,7 +48,9 @@ describe('vaultRewards', () => {
         'nxdv3_vault_rewards_cache_v2',
         JSON.stringify({
           currentEpoch: 1,
-          daily: [{ epoch: 0, date: '2024-01-01', startTime: 1704067200, ethWei: '1', xenWei: '0' }],
+          daily: [
+            { epoch: 0, date: '2024-01-01', startTime: 1704067200, ethWei: '1', xenWei: '0' },
+          ],
           updatedAt: Date.now() - 120000, // 2 minutes ago (expired)
         })
       );
@@ -96,7 +94,12 @@ describe('vaultRewards', () => {
           success: true,
           result: [
             { epoch: 0, startTime: 1704067200, ethAmount: 1000000000000000000n, xenAmount: 0n },
-            { epoch: 1, startTime: 1704672000, ethAmount: 2000000000000000000n, xenAmount: 500000000000000000n },
+            {
+              epoch: 1,
+              startTime: 1704672000,
+              ethAmount: 2000000000000000000n,
+              xenAmount: 500000000000000000n,
+            },
           ],
         },
       ];
@@ -201,7 +204,12 @@ describe('vaultRewards', () => {
           success: true,
           result: [
             { epoch: 5, startTime: 1706486400, ethAmount: 1000000000000000000n, xenAmount: 0n },
-            { epoch: 6, startTime: 1707091200, ethAmount: 2000000000000000000n, xenAmount: 500000000000000000n },
+            {
+              epoch: 6,
+              startTime: 1707091200,
+              ethAmount: 2000000000000000000n,
+              xenAmount: 500000000000000000n,
+            },
           ],
         },
       ];

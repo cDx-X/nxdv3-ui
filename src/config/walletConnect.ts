@@ -22,13 +22,12 @@ export function ensureAppKit() {
         import('@reown/appkit/networks'),
       ]);
 
-      const projectId =
-        import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
+      const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
 
       if (!projectId || projectId === 'your_walletconnect_project_id_here') {
         throw new Error(
           'VITE_WALLETCONNECT_PROJECT_ID is not configured. ' +
-          'Please create a .env file based on .env.example and set your Project ID from https://cloud.reown.com'
+            'Please create a .env file based on .env.example and set your Project ID from https://cloud.reown.com'
         );
       }
 
@@ -67,8 +66,10 @@ export function ensureAppKit() {
         // in Reown's ThemeUtil, which skips the entire KHTeka font preload loop and
         // renders the wallet modal with the application's native Inter font.
         themeVariables: {
-          '--w3m-font-family': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-          '--apkt-font-family': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          '--w3m-font-family':
+            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          '--apkt-font-family':
+            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         },
       });
 
@@ -81,4 +82,3 @@ export function ensureAppKit() {
 export function resetAppKitForTesting() {
   appKitPromise = null;
 }
-

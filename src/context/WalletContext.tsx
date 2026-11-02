@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import { ethers } from 'ethers';
 import { RouterController, ChainController } from '@reown/appkit-controllers';
 import {
@@ -47,7 +55,6 @@ const WalletProviderInner: React.FC<{
   children: React.ReactNode;
 }> = ({ appkit, pendingOpen, onOpened, initError, children }) => {
   const { open, close } = appkit.useAppKit();
-
 
   const {
     address: appKitAddress,
@@ -161,12 +168,12 @@ const WalletProviderInner: React.FC<{
   }, [status, resetAppKitConnection]);
 
   // AppKit's modal is a web component whose Account View (Fund wallet / Swap /
-// Send / Activity) is rendered internally after a successful connection. React
-// state updates (appKitIsConnected) only fire AFTER that view is already shown,
-// so closing via a setState/effect leaves a visible flash. Instead we subscribe
-// to AppKit's RouterController synchronously and close the modal the instant the
-// view changes to 'Account' — before the web component paints the Account View.
-useEffect(() => {
+  // Send / Activity) is rendered internally after a successful connection. React
+  // state updates (appKitIsConnected) only fire AFTER that view is already shown,
+  // so closing via a setState/effect leaves a visible flash. Instead we subscribe
+  // to AppKit's RouterController synchronously and close the modal the instant the
+  // view changes to 'Account' — before the web component paints the Account View.
+  useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     try {
       unsubscribe = RouterController.subscribeKey('view', (view) => {

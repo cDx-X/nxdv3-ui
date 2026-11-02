@@ -17,55 +17,65 @@ describe('ProtocolInfoCard', () => {
   });
 
   it('renders info card with title', () => {
-    render(React.createElement(ProtocolInfoCard, {
-      protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(ProtocolInfoCard, {
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     expect(screen.getByText(/Protocol Info/)).toBeInTheDocument();
   });
 
   it('shows collapsed state by default', () => {
-    render(React.createElement(ProtocolInfoCard, {
-      protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(ProtocolInfoCard, {
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     // Should show chevron down (collapsed)
     expect(screen.getByText('ChevronDown')).toBeInTheDocument();
   });
 
   it('expands when clicked', () => {
-    render(React.createElement(ProtocolInfoCard, {
-      protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(ProtocolInfoCard, {
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     fireEvent.click(screen.getByText(/Protocol Info/));
-    
+
     // Should show chevron up (expanded)
     expect(screen.getByText('ChevronUp')).toBeInTheDocument();
   });
 
   it('shows transfer tax breakdown when expanded', () => {
-    render(React.createElement(ProtocolInfoCard, {
-      protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(ProtocolInfoCard, {
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     fireEvent.click(screen.getByText(/Protocol Info/));
-    
+
     expect(screen.getByText(/Transfer Tax Breakdown/)).toBeInTheDocument();
   });
 
   it('shows ETH fee split when expanded', () => {
-    render(React.createElement(ProtocolInfoCard, {
-      protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(ProtocolInfoCard, {
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     fireEvent.click(screen.getByText(/Protocol Info/));
-    
+
     expect(screen.getByText(/ETH Fee Split/)).toBeInTheDocument();
   });
 });

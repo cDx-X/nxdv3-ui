@@ -112,8 +112,18 @@ describe('VaultRewardsChart', () => {
 
   it('renders chart data when rewards are present', async () => {
     (fetchVaultRewards as any).mockResolvedValue([
-      { epoch: 1, date: '2025-01-01', ethWei: 1000000000000000000n, xenWei: 2000000000000000000000n },
-      { epoch: 2, date: '2025-01-08', ethWei: 2000000000000000000n, xenWei: 3000000000000000000000n },
+      {
+        epoch: 1,
+        date: '2025-01-01',
+        ethWei: 1000000000000000000n,
+        xenWei: 2000000000000000000000n,
+      },
+      {
+        epoch: 2,
+        date: '2025-01-08',
+        ethWei: 2000000000000000000n,
+        xenWei: 3000000000000000000000n,
+      },
     ]);
 
     render(React.createElement(VaultRewardsChart));
@@ -126,8 +136,18 @@ describe('VaultRewardsChart', () => {
   it('removes epoch dates from the x-axis while keeping them in the tooltip', async () => {
     capturedChartProps = [];
     (fetchVaultRewards as any).mockResolvedValue([
-      { epoch: 1, date: '2025-01-01', ethWei: 1000000000000000000n, xenWei: 2000000000000000000000n },
-      { epoch: 2, date: '2025-01-08', ethWei: 2000000000000000000n, xenWei: 3000000000000000000000n },
+      {
+        epoch: 1,
+        date: '2025-01-01',
+        ethWei: 1000000000000000000n,
+        xenWei: 2000000000000000000000n,
+      },
+      {
+        epoch: 2,
+        date: '2025-01-08',
+        ethWei: 2000000000000000000n,
+        xenWei: 3000000000000000000000n,
+      },
     ]);
 
     render(React.createElement(VaultRewardsChart));
@@ -190,7 +210,12 @@ describe('VaultRewardsChart', () => {
   it('tests chart options callbacks and tick formatting correctly', async () => {
     capturedChartProps = [];
     (fetchVaultRewards as any).mockResolvedValue([
-      { epoch: 1, date: '2025-01-01', ethWei: 1000000000000000000n, xenWei: 2000000000000000000000n },
+      {
+        epoch: 1,
+        date: '2025-01-01',
+        ethWei: 1000000000000000000n,
+        xenWei: 2000000000000000000000n,
+      },
     ]);
 
     render(React.createElement(VaultRewardsChart));

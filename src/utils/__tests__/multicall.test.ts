@@ -25,7 +25,7 @@ vi.mock('ethers', () => {
       }),
     };
   });
-  
+
   return {
     ethers: {
       Interface: Interface,
@@ -53,9 +53,7 @@ describe('multicall', () => {
       },
     ];
 
-    (executeWithRpcFailover as any).mockResolvedValue([
-      { success: true, result: 100n },
-    ]);
+    (executeWithRpcFailover as any).mockResolvedValue([{ success: true, result: 100n }]);
 
     const result = await multicall(calls);
     expect(result).toHaveLength(1);
@@ -93,9 +91,7 @@ describe('multicall', () => {
       },
     ];
 
-    (executeWithRpcFailover as any).mockResolvedValue([
-      { success: true, result: 100n },
-    ]);
+    (executeWithRpcFailover as any).mockResolvedValue([{ success: true, result: 100n }]);
 
     const result = await multicall(calls);
     expect(result).toHaveLength(1);
@@ -140,7 +136,9 @@ describe('multicall', () => {
     ];
 
     const mockProvider = {
-      call: vi.fn().mockResolvedValue('0x0000000000000000000000000000000000000000000000000000000000000064'),
+      call: vi
+        .fn()
+        .mockResolvedValue('0x0000000000000000000000000000000000000000000000000000000000000064'),
     };
 
     const result = await multicall(calls, mockProvider as any);

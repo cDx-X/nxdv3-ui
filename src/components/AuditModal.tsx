@@ -23,8 +23,12 @@ export const AuditModal: React.FC<AuditModalProps> = ({ isOpen, onClose }) => {
         <div className="modal-header">
           <div className="flex items-center gap-2 modal-header-group">
             <ShieldCheck size={20} className="icon-gold" />
-            <h2 className="text-lg font-bold">A.I. Smart Contract Architecture, Mathematical Verification, and Security Audit</h2>
-            <p className="modal-header-subtitle">NXDv3 Protocol smart contracts - audited periodically</p>
+            <h2 className="text-lg font-bold">
+              A.I. Smart Contract Architecture, Mathematical Verification, and Security Audit
+            </h2>
+            <p className="modal-header-subtitle">
+              NXDv3 Protocol smart contracts - audited periodically
+            </p>
             <p className="modal-header-subtitle">Last updated: 10/09/2026</p>
           </div>
           <button className="modal-close-btn" onClick={onClose} title="Close">

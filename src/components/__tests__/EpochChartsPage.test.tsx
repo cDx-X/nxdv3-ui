@@ -4,45 +4,45 @@ import React from 'react';
 
 // Mock contexts before importing components
 vi.mock('../../context/ProtocolContext', () => ({
-    ProtocolContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
+  ProtocolContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+  useProtocol: vi.fn(() => ({
+    globalData: {
+      isLoaded: true,
+      effectiveSupply: 1000000000000000000000000n,
+      totalMinted: 500000000000000000000000n,
+      totalNXDBurned: 100000000000000000000000n,
+      totalDXNBurned: 50000000000000000000000n,
+      totalDXNStaked: 200000000000000000000000n,
+      totalVaultStaked: 300000000000000000000000n,
+      totalETHSentToVault: 10000000000000000000n,
+      totalXENSentToVault: 50000000000000000000n,
+      nxdMaxSupply: 2000000000000000000000000n,
+      burnedPercentage: 5.0,
+      nxdTotalSupply: 1000000000000000000000000n,
+      maxMintableDeposit: 1000000000000000000000000n,
+      nxdMintedViaDeposit: 50000000000000000000000n,
+      currentRate: 1000000000000000000n,
+      tierSize: 1000000000000000000000n,
     },
-    useProtocol: vi.fn(() => ({
-      globalData: { 
-        isLoaded: true,
-        effectiveSupply: 1000000000000000000000000n,
-        totalMinted: 500000000000000000000000n,
-        totalNXDBurned: 100000000000000000000000n,
-        totalDXNBurned: 50000000000000000000000n,
-        totalDXNStaked: 200000000000000000000000n,
-        totalVaultStaked: 300000000000000000000000n,
-        totalETHSentToVault: 10000000000000000000n,
-        totalXENSentToVault: 50000000000000000000n,
-        nxdMaxSupply: 2000000000000000000000000n,
-        burnedPercentage: 5.0,
-        nxdTotalSupply: 1000000000000000000000000n,
-        maxMintableDeposit: 1000000000000000000000000n,
-        nxdMintedViaDeposit: 50000000000000000000000n,
-        currentRate: 1000000000000000000n,
-        tierSize: 1000000000000000000000n,
-      },
-      userData: {
-        isLoaded: true,
-        stakedBalance: 100000000000000000000000n,
-      },
-      refreshAll: vi.fn(),
-      isLoadingGlobal: false,
-    })),
+    userData: {
+      isLoaded: true,
+      stakedBalance: 100000000000000000000000n,
+    },
+    refreshAll: vi.fn(),
+    isLoadingGlobal: false,
+  })),
 }));
 
 vi.mock('../../context/WalletContext', () => ({
-    WalletContext: {
-      Provider: ({ children }: { children: React.ReactNode }) => children,
-    },
-    useWallet: vi.fn(() => ({
-      isConnected: true,
-    })),
-  }));
+  WalletContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+  useWallet: vi.fn(() => ({
+    isConnected: true,
+  })),
+}));
 
 // Mock ethers
 vi.mock('ethers', () => {
@@ -52,7 +52,7 @@ vi.mock('ethers', () => {
       decodeFunctionResult: vi.fn().mockReturnValue([100n]),
     };
   });
-  
+
   return {
     ethers: {
       formatEther: vi.fn((v) => (Number(v) / 1e18).toString()),
@@ -109,16 +109,20 @@ vi.mock('lucide-react', () => ({
 
 // Mock child components with simple implementations
 vi.mock('../EpochBurnChart', () => ({
-  EpochBurnChart: () => React.createElement('div', { 'data-testid': 'epoch-burn-chart' }, 'EpochBurnChart'),
+  EpochBurnChart: () =>
+    React.createElement('div', { 'data-testid': 'epoch-burn-chart' }, 'EpochBurnChart'),
 }));
 vi.mock('../SupplyBarChart', () => ({
-  SupplyBarChart: () => React.createElement('div', { 'data-testid': 'supply-bar-chart' }, 'SupplyBarChart'),
+  SupplyBarChart: () =>
+    React.createElement('div', { 'data-testid': 'supply-bar-chart' }, 'SupplyBarChart'),
 }));
 vi.mock('../MintingTierChart', () => ({
-  MintingTierChart: () => React.createElement('div', { 'data-testid': 'minting-tier-chart' }, 'MintingTierChart'),
+  MintingTierChart: () =>
+    React.createElement('div', { 'data-testid': 'minting-tier-chart' }, 'MintingTierChart'),
 }));
 vi.mock('../VaultRewardsChart', () => ({
-  VaultRewardsChart: () => React.createElement('div', { 'data-testid': 'vault-rewards-chart' }, 'VaultRewardsChart'),
+  VaultRewardsChart: () =>
+    React.createElement('div', { 'data-testid': 'vault-rewards-chart' }, 'VaultRewardsChart'),
 }));
 
 import { EpochChartsPage } from '../EpochChartsPage';
@@ -126,11 +130,11 @@ import { EpochChartsPage } from '../EpochChartsPage';
 describe('EpochChartsPage', () => {
   const defaultProps = {
     onBack: vi.fn(),
-    nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486",
-    XenAddress: "0xeB585163DEbB1E637c6D617de3bEF99347cd75c8",
-    dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576",
-    protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-    taxRecipientAddress: "0x8ae6A0Ab65cE133365760F11367d5353BBcf5f40",
+    nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+    XenAddress: '0xeB585163DEbB1E637c6D617de3bEF99347cd75c8',
+    dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
+    protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+    taxRecipientAddress: '0x8ae6A0Ab65cE133365760F11367d5353BBcf5f40',
   };
 
   it('renders page title', () => {
@@ -177,19 +181,31 @@ describe('EpochChartsPage', () => {
     fireEvent.click(infoButtons[0]);
     expect(screen.getByText(/Breakdown of the total emitted NXDv3 supply/i)).toBeInTheDocument();
     fireEvent.click(infoButtons[0]);
-    expect(screen.queryByText(/Breakdown of the total emitted NXDv3 supply/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Breakdown of the total emitted NXDv3 supply/i)
+    ).not.toBeInTheDocument();
 
     // Toggle 2: Epoch Burn Info (now index 1)
     fireEvent.click(infoButtons[1]);
     expect(screen.getByText(/Amount of burned NXDv3 broken down by cycles/i)).toBeInTheDocument();
     fireEvent.click(infoButtons[1]);
-    expect(screen.queryByText(/Amount of burned NXDv3 broken down by cycles/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Amount of burned NXDv3 broken down by cycles/i)
+    ).not.toBeInTheDocument();
 
     // Toggle 3: Vault Info (now index 2)
     fireEvent.click(infoButtons[2]);
-    expect(screen.getByText(/Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i
+      )
+    ).toBeInTheDocument();
     fireEvent.click(infoButtons[2]);
-    expect(screen.queryByText(/Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        /Growth in total value of ETH and XEN rewards transferred to the Staking Vault/i
+      )
+    ).not.toBeInTheDocument();
 
     // Toggle 4: Mint Info (now index 3)
     fireEvent.click(infoButtons[3]);
@@ -206,5 +222,4 @@ describe('EpochChartsPage', () => {
     fireEvent.click(backBtn);
     expect(onBack).toHaveBeenCalledTimes(1);
   });
-
 });

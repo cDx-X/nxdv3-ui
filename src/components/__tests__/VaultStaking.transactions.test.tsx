@@ -524,13 +524,17 @@ describe('VaultStaking Transactions', () => {
     const customToggle = screen.getByText('Custom Address');
     fireEvent.click(customToggle);
 
-    const recipientInput = screen.getByPlaceholderText('0x... recipient address') as HTMLInputElement;
+    const recipientInput = screen.getByPlaceholderText(
+      '0x... recipient address'
+    ) as HTMLInputElement;
     expect(recipientInput).toBeInTheDocument();
     // Initially auto-populated with user's address
     expect(recipientInput.value).toBe(mockWalletContext.address);
 
     // Change input value to something else
-    fireEvent.change(recipientInput, { target: { value: '0x9999999999999999999999999999999999999999' } });
+    fireEvent.change(recipientInput, {
+      target: { value: '0x9999999999999999999999999999999999999999' },
+    });
     expect(recipientInput.value).toBe('0x9999999999999999999999999999999999999999');
 
     // Click "Use Mine" button to reset to user's address
@@ -568,5 +572,4 @@ describe('VaultStaking Transactions', () => {
 
     expect(mockWithdrawCooldown).toHaveBeenCalled();
   });
-
 });

@@ -40,7 +40,7 @@ describe('rpcProvider', () => {
   describe('deduplicateRequest', () => {
     it('should deduplicate concurrent requests with same key', async () => {
       const fn = vi.fn().mockResolvedValue('result');
-      
+
       const [result1, result2] = await Promise.all([
         deduplicateRequest('test-key', fn),
         deduplicateRequest('test-key', fn),
@@ -70,10 +70,10 @@ describe('rpcProvider', () => {
       const fn = vi.fn().mockResolvedValue('result');
 
       await deduplicateRequest('test-key', fn);
-      
+
       // Second call should execute again since first is complete
       await deduplicateRequest('test-key', fn);
-      
+
       expect(fn).toHaveBeenCalledTimes(2);
     });
   });
@@ -81,27 +81,28 @@ describe('rpcProvider', () => {
   describe('executeWithRpcFailover', () => {
     it('should execute function with RPC provider', async () => {
       const fn = vi.fn().mockResolvedValue('success');
-      
+
       const result = await executeWithRpcFailover(fn, 10, 1);
-      
+
       expect(result).toBe('success');
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
     it('should retry on failure', async () => {
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('timeout'))
         .mockResolvedValueOnce('success');
-      
+
       const result = await executeWithRpcFailover(fn, 10, 2);
-      
+
       expect(result).toBe('success');
       expect(fn).toHaveBeenCalledTimes(2);
     });
 
     it('should throw after max attempts', async () => {
       const fn = vi.fn().mockRejectedValue(new Error('timeout'));
-      
+
       await expect(executeWithRpcFailover(fn, 10, 2)).rejects.toThrow('timeout');
       expect(fn).toHaveBeenCalledTimes(2);
     });

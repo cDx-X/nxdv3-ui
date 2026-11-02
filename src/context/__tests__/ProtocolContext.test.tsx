@@ -42,8 +42,12 @@ const TestComponent: React.FC = () => {
       <div data-testid="user-dxn">{userData.dxnBalance.toString()}</div>
       <div data-testid="user-nxd">{userData.nxdBalance.toString()}</div>
       <div data-testid="user-staked">{userData.stakedBalance.toString()}</div>
-      <div data-testid="user-cooldown-amount">{userData.cooldownRequest ? userData.cooldownRequest.amount.toString() : 'none'}</div>
-      <div data-testid="user-cooldown-release">{userData.cooldownRequest ? userData.cooldownRequest.releaseTime.toString() : 'none'}</div>
+      <div data-testid="user-cooldown-amount">
+        {userData.cooldownRequest ? userData.cooldownRequest.amount.toString() : 'none'}
+      </div>
+      <div data-testid="user-cooldown-release">
+        {userData.cooldownRequest ? userData.cooldownRequest.releaseTime.toString() : 'none'}
+      </div>
       <div data-testid="loading">{isLoadingGlobal ? 'true' : 'false'}</div>
       <button onClick={() => refreshAll(true)}>Refresh</button>
     </div>

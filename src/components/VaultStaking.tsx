@@ -204,7 +204,10 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
       try {
         const vault = new ethers.Contract(effectiveVaultAddress, NXDv3StakingVaultABI, signer);
         const tx = await vault.claimRewardsTo(customRecipient);
-        setTxMessage({ type: 'info', text: `Claiming all rewards to ${customRecipient.slice(0, 6)}...${customRecipient.slice(-4)}...` });
+        setTxMessage({
+          type: 'info',
+          text: `Claiming all rewards to ${customRecipient.slice(0, 6)}...${customRecipient.slice(-4)}...`,
+        });
         await tx.wait();
         setTxMessage({ type: 'success', text: 'All rewards claimed to recipient successfully!' });
         await fetchVaultData();
@@ -244,7 +247,10 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
       try {
         const vault = new ethers.Contract(effectiveVaultAddress, NXDv3StakingVaultABI, signer);
         const tx = await vault.claimETHTo(customRecipient);
-        setTxMessage({ type: 'info', text: `Claiming ETH to ${customRecipient.slice(0, 6)}...${customRecipient.slice(-4)}...` });
+        setTxMessage({
+          type: 'info',
+          text: `Claiming ETH to ${customRecipient.slice(0, 6)}...${customRecipient.slice(-4)}...`,
+        });
         await tx.wait();
         setTxMessage({ type: 'success', text: 'ETH rewards claimed to recipient successfully!' });
         await fetchVaultData();
@@ -284,7 +290,10 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
       try {
         const vault = new ethers.Contract(effectiveVaultAddress, NXDv3StakingVaultABI, signer);
         const tx = await vault.claimXENTo(customRecipient);
-        setTxMessage({ type: 'info', text: `Claiming XEN to ${customRecipient.slice(0, 6)}...${customRecipient.slice(-4)}...` });
+        setTxMessage({
+          type: 'info',
+          text: `Claiming XEN to ${customRecipient.slice(0, 6)}...${customRecipient.slice(-4)}...`,
+        });
         await tx.wait();
         setTxMessage({ type: 'success', text: 'XEN rewards claimed to recipient successfully!' });
         await fetchVaultData();
@@ -459,14 +468,18 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
                   <button
                     className="btn btn-primary"
                     onClick={handleClaimETHTo}
-                    disabled={isLoading || !customRecipient || parseFloat(vaultData.pendingETH) === 0}
+                    disabled={
+                      isLoading || !customRecipient || parseFloat(vaultData.pendingETH) === 0
+                    }
                   >
                     Claim ETH
                   </button>
                   <button
                     className="btn btn-secondary"
                     onClick={handleClaimXENTo}
-                    disabled={isLoading || !customRecipient || parseFloat(vaultData.pendingXEN) === 0}
+                    disabled={
+                      isLoading || !customRecipient || parseFloat(vaultData.pendingXEN) === 0
+                    }
                   >
                     Claim XEN
                   </button>
@@ -726,7 +739,7 @@ export const VaultStaking: React.FC<VaultStakingProps> = React.memo(
                 </button>
               </div>
 
-             {/*<button
+              {/*<button
                 type="button"
                 className="btn full-width"
                 style={

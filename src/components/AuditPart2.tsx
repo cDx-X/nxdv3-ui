@@ -77,16 +77,12 @@ export const AuditPart2: React.FC = () => {
   return (
     <div className="audit-section-stack">
       <div>
-        <h3>
-          2. System Architecture & Contract Deep-Dive
-        </h3>
+        <h3>2. System Architecture & Contract Deep-Dive</h3>
 
         <div className="audit-section-stack">
           {/* Section A: NXDv3ERC20.sol */}
           <div>
-            <h4>
-              A. Token Core: NXDv3ERC20.sol
-            </h4>
+            <h4>A. Token Core: NXDv3ERC20.sol</h4>
 
             <div style={{ marginBottom: '1rem' }}>
               <h5>
@@ -94,32 +90,40 @@ export const AuditPart2: React.FC = () => {
               </h5>
               <ul>
                 <li>
-                  <strong>Rate</strong>: 5% (<code>amount / 20</code>) evaluated in <code>getAmountsAfterTax</code>.
-                  <br /><strong>Exemptions</strong>:
+                  <strong>Rate</strong>: 5% (<code>amount / 20</code>) evaluated in{' '}
+                  <code>getAmountsAfterTax</code>.
+                  <br />
+                  <strong>Exemptions</strong>:
                   <ul>
                     <li>
-                      Excluded when sender (<code>isExcludedWhenSender == true</code>): The Protocol, the TaxRecipientV3 contract, the token contract itself, and the Uniswap V2 Pair (for token purchases).
+                      Excluded when sender (<code>isExcludedWhenSender == true</code>): The
+                      Protocol, the TaxRecipientV3 contract, the token contract itself, and the
+                      Uniswap V2 Pair (for token purchases).
                     </li>
                     <li>
-                      Excluded when recipient (<code>isExcludedWhenRecipient == true</code>): Protocol, TaxRecipientV3, and the token contract.
+                      Excluded when recipient (<code>isExcludedWhenRecipient == true</code>):
+                      Protocol, TaxRecipientV3, and the token contract.
                     </li>
-                    <li>Transfers to <code>address(0)</code> or <code>DEAD_ADDRESS</code> (<code>0x...dEaD</code>).</li>
+                    <li>
+                      Transfers to <code>address(0)</code> or <code>DEAD_ADDRESS</code> (
+                      <code>0x...dEaD</code>).
+                    </li>
                   </ul>
                 </li>
               </ul>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5>
-                Immediate Tax Routing
-              </h5>
+              <h5>Immediate Tax Routing</h5>
               <p>When a transfer incurs tax:</p>
               <ul>
                 <li>
-                  <strong>30% of the tax (1.5% of total transfer)</strong> is immediately burned to <code>address(0)</code> via <code>_recordBurn</code>.
+                  <strong>30% of the tax (1.5% of total transfer)</strong> is immediately burned to{' '}
+                  <code>address(0)</code> via <code>_recordBurn</code>.
                 </li>
                 <li>
-                  <strong>70% of the tax (3.5% of total transfer)</strong> is transferred directly to <code>TaxRecipientV3</code>.
+                  <strong>70% of the tax (3.5% of total transfer)</strong> is transferred directly
+                  to <code>TaxRecipientV3</code>.
                 </li>
                 <li>
                   The recipient receives the remaining <strong>95%</strong> of the transfer amount.
@@ -128,51 +132,49 @@ export const AuditPart2: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5>
-                Dead-Address Redirection
-              </h5>
+              <h5>Dead-Address Redirection</h5>
               <p>
-                Transfers targeting <code>0x000000000000000000000000000000000000dEaD</code> are redirected to <code>address(0)</code> and registered in the internal burn tracker.
+                Transfers targeting <code>0x000000000000000000000000000000000000dEaD</code> are
+                redirected to <code>address(0)</code> and registered in the internal burn tracker.
               </p>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5>
-                Initial Timestamp (T0)
-              </h5>
-              <p>
-                Initialized on the first burn event and aligned to midnight UTC:
-              </p>
+              <h5>Initial Timestamp (T0)</h5>
+              <p>Initialized on the first burn event and aligned to midnight UTC:</p>
               <p className="audit-formula">
                 firstBurnTimestamp = (block.timestamp / 1 day) * 1 day
               </p>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h5>
-                Epoch Calculation
-              </h5>
+              <h5>Epoch Calculation</h5>
               <p className="audit-formula">
                 currentEpoch = (block.timestamp - firstBurnTimestamp) / 7 days
               </p>
               <ul>
                 <li>
-                  <strong>Complexity</strong>: O(1) on-chain state updates. Every burn updates <code>epochBurned[epoch]</code> and <code>totalNXDBurned</code>.
+                  <strong>Complexity</strong>: O(1) on-chain state updates. Every burn updates{' '}
+                  <code>epochBurned[epoch]</code> and <code>totalNXDBurned</code>.
                 </li>
                 <li>
-                  <strong>Frontend Views</strong>: <code>getEpochsBurnData(fromEpoch, toEpoch)</code> and <code>getAllEpochsBurnData()</code> return bounded historical epoch data without gas-exhaustion risks.
+                  <strong>Frontend Views</strong>:{' '}
+                  <code>getEpochsBurnData(fromEpoch, toEpoch)</code> and{' '}
+                  <code>getAllEpochsBurnData()</code> return bounded historical epoch data without
+                  gas-exhaustion risks.
                 </li>
               </ul>
             </div>
           </div>
           {/* Section B: TaxRecipientV3.sol */}
           <div>
-            <h4>
-              B. Tax Processor: TaxRecipientV3.sol
-            </h4>
+            <h4>B. Tax Processor: TaxRecipientV3.sol</h4>
             <ul>
               <li>
-                <strong>Tax Buffer & LP Provisioning (<code>_processTaxInternal</code>)</strong>:
+                <strong>
+                  Tax Buffer & LP Provisioning (<code>_processTaxInternal</code>)
+                </strong>
+                :
                 <ul>
                   <li>
                     <strong>Step 1 (DXN Staking)</strong>: 25% of accumulated DXN is approved and
@@ -191,8 +193,8 @@ export const AuditPart2: React.FC = () => {
                         <code>optimalDXN = (ourNXDBalance * reserveDXN) / reserveNXD</code>.
                       </li>
                       <li>
-                        If <code>optimalDXN &lt;= ourDXNBalance</code>, it uses 100% of available NXD
-                        and matches it with exact proportional DXN.
+                        If <code>optimalDXN &lt;= ourDXNBalance</code>, it uses 100% of available
+                        NXD and matches it with exact proportional DXN.
                       </li>
                       <li>
                         If not, it uses 100% of available DXN and matches it with exact proportional
@@ -203,48 +205,52 @@ export const AuditPart2: React.FC = () => {
                         checks (<code>slippageBps</code>).
                       </li>
                       <li>
-                        LP tokens remain locked in the contract.
-                        Leftover dust tokens remain safe in the contract for the next cycle.
+                        LP tokens remain locked in the contract. Leftover dust tokens remain safe in
+                        the contract for the next cycle.
                       </li>
                     </ul>
                   </li>
                 </ul>
               </li>
             </ul>
-
           </div>
 
           <MermaidDiagram chart={taxPipelineChart} title="Detailed 5% Tax Pipeline" />
 
           {/* Section C: NXDv3Protocol.sol */}
           <div>
-            <h4>
-              C. Protocol Coordinator: NXDv3Protocol.sol
-            </h4>
+            <h4>C. Protocol Coordinator: NXDv3Protocol.sol</h4>
             <ul>
               <li>
                 <strong>
-                  Tiered Minting Engine (<code>deposit</code> / <code>_calculateDepositOutput</code>)
+                  Tiered Minting Engine (<code>deposit</code> / <code>_calculateDepositOutput</code>
+                  )
                 </strong>
                 :
                 <ul>
                   <li>
-                    <strong>Deposit Ceiling</strong>: Protocol-wide deposit minting supply (<code>MINTABLE_SUPPLY_FOR_DEPOSIT = maxSupply - initialSupply</code>, up to 120,000 NXD). No artificial per-wallet limit; excess DXN is never consumed.
+                    <strong>Deposit Ceiling</strong>: Protocol-wide deposit minting supply (
+                    <code>MINTABLE_SUPPLY_FOR_DEPOSIT = maxSupply - initialSupply</code>, up to
+                    120,000 NXD). No artificial per-wallet limit; excess DXN is never consumed.
                   </li>
                   <li>
                     <strong>Tiered Pricing</strong>:
                     <p style={{ marginTop: '0.2rem', marginBottom: '0.2rem' }}>
-                      Priced across 3 equal tiers (<code>TIER_SIZE = MINTABLE_SUPPLY_FOR_DEPOSIT / 3</code>):
+                      Priced across 3 equal tiers (
+                      <code>TIER_SIZE = MINTABLE_SUPPLY_FOR_DEPOSIT / 3</code>):
                     </p>
                     <ul>
                       <li>
-                        <strong>Tier 1 (First 1/3 of deposit supply)</strong>: 1 DXN → 1.000 NXD (1:1 / <code>BASE_DEPOSIT_RATE</code>)
+                        <strong>Tier 1 (First 1/3 of deposit supply)</strong>: 1 DXN → 1.000 NXD
+                        (1:1 / <code>BASE_DEPOSIT_RATE</code>)
                       </li>
                       <li>
-                        <strong>Tier 2 (Second 1/3 of deposit supply)</strong>: 1 DXN → 0.909 NXD (10/11)
+                        <strong>Tier 2 (Second 1/3 of deposit supply)</strong>: 1 DXN → 0.909 NXD
+                        (10/11)
                       </li>
                       <li>
-                        <strong>Tier 3 (Final 1/3 of deposit supply)</strong>: 1 DXN → 0.826 NXD (100/121)
+                        <strong>Tier 3 (Final 1/3 of deposit supply)</strong>: 1 DXN → 0.826 NXD
+                        (100/121)
                       </li>
                     </ul>
                   </li>
@@ -299,38 +305,48 @@ export const AuditPart2: React.FC = () => {
                 </ol>
               </li>
             </ul>
-
           </div>
           {/* Section D: NXDv3StakingVault.sol */}
           <div>
-            <h4>
-              D. Staking Vault: NXDv3StakingVault.sol
-            </h4>
+            <h4>D. Staking Vault: NXDv3StakingVault.sol</h4>
             <ul>
               <li>
                 <strong>Dual-Reward Continuous Linear Streaming Engine (Synthetix-Style)</strong>:
                 <p style={{ marginTop: '0.25rem' }}>
-                  Distributes dual rewards (<strong>ETH</strong> and <strong>XEN</strong>) over rolling 7-day cycles (<code>REWARD_DURATION = 7 days</code>) using continuous emission rates (<code>rewardRateETH</code>, <code>rewardRateXEN</code>) synchronized with high-precision share indices (<code>accEthPerShare</code>, <code>accXenPerShare</code> with <code>PRECISION = 1e18</code>). Guarantees constant O(1) gas cost regardless of total stakers.
+                  Distributes dual rewards (<strong>ETH</strong> and <strong>XEN</strong>) over
+                  rolling 7-day cycles (<code>REWARD_DURATION = 7 days</code>) using continuous
+                  emission rates (<code>rewardRateETH</code>, <code>rewardRateXEN</code>)
+                  synchronized with high-precision share indices (<code>accEthPerShare</code>,{' '}
+                  <code>accXenPerShare</code> with <code>PRECISION = 1e18</code>). Guarantees
+                  constant O(1) gas cost regardless of total stakers.
                 </p>
               </li>
               <li>
                 <strong>
-                  Zero-Staker Buffer Protection (<code>unallocatedRewardsETH</code> & <code>unallocatedRewardsXEN</code>)
+                  Zero-Staker Buffer Protection (<code>unallocatedRewardsETH</code> &{' '}
+                  <code>unallocatedRewardsXEN</code>)
                 </strong>
                 :
                 <ul>
                   <li>
-                    If ETH or XEN rewards arrive while <code>totalStaked == 0</code>, the incoming assets are captured in <code>unallocatedRewardsETH</code> and <code>unallocatedRewardsXEN</code>.
+                    If ETH or XEN rewards arrive while <code>totalStaked == 0</code>, the incoming
+                    assets are captured in <code>unallocatedRewardsETH</code> and{' '}
+                    <code>unallocatedRewardsXEN</code>.
                   </li>
                   <li>
-                    As soon as active staking begins or resumes, buffered rewards are automatically rolled into the next 7-day streaming cycle, eliminating any locked, stuck, or diluted rewards.
+                    As soon as active staking begins or resumes, buffered rewards are automatically
+                    rolled into the next 7-day streaming cycle, eliminating any locked, stuck, or
+                    diluted rewards.
                   </li>
                 </ul>
               </li>
               <li>
                 <strong>Independent Reward Claiming</strong>:
                 <p style={{ marginTop: '0.25rem' }}>
-                  Stakers can claim rewards independently via <code>claimRewards()</code> (both ETH & XEN), <code>claimETH()</code>, or <code>claimXEN()</code>, or route payouts to any external recipient address via <code>claimRewardsTo</code>, <code>claimETHTo</code>, and <code>claimXENTo</code>.
+                  Stakers can claim rewards independently via <code>claimRewards()</code> (both ETH
+                  & XEN), <code>claimETH()</code>, or <code>claimXEN()</code>, or route payouts to
+                  any external recipient address via <code>claimRewardsTo</code>,{' '}
+                  <code>claimETHTo</code>, and <code>claimXENTo</code>.
                 </p>
               </li>
               <li>
@@ -340,23 +356,39 @@ export const AuditPart2: React.FC = () => {
                     <strong>
                       Instant with Penalty (<code>acceptsPenalty = true</code>)
                     </strong>
-                    : User receives 75% of requested NXD; 25% is burned physically to permanently decrement supply (<code>nxdPenaltyBurned</code>).
+                    : User receives 75% of requested NXD; 25% is burned physically to permanently
+                    decrement supply (<code>nxdPenaltyBurned</code>).
                   </li>
                   <li>
                     <strong>
                       Standard Cooldown (<code>acceptsPenalty = false</code>)
                     </strong>
-                    : Queues withdrawal with <code>WITHDRAWAL_COOLDOWN = 1 days</code> via <code>withdrawalRequests[msg.sender]</code>. Staked balance is deducted immediately upon scheduling, and tokens are safely collected after 24 hours via <code>withdrawCooldown()</code>.
+                    : Queues withdrawal with <code>WITHDRAWAL_COOLDOWN = 1 days</code> via{' '}
+                    <code>withdrawalRequests[msg.sender]</code>. Staked balance is deducted
+                    immediately upon scheduling, and tokens are safely collected after 24 hours via{' '}
+                    <code>withdrawCooldown()</code>.
                   </li>
                   <li>
-                    Guard against concurrent cooldown abuse: only one withdrawal request can be pending at a time (<code>revert Cooldown()</code>).
+                    Guard against concurrent cooldown abuse: only one withdrawal request can be
+                    pending at a time (<code>revert Cooldown()</code>).
                   </li>
                 </ul>
               </li>
               <li>
-                <strong>In-Place Freezing Emergency Mode (<code>emergencyWithdraw</code>)</strong>:
+                <strong>
+                  In-Place Freezing Emergency Mode (<code>emergencyWithdraw</code>)
+                </strong>
+                :
                 <p style={{ marginTop: '0.25rem' }}>
-                  Governance-activated safeguard. When enabled (<code>emergencyWithdrawEnabled = true</code>), active reward emission streams are safely paused (<code>_pauseEthStream</code>, <code>_pauseXenStream</code>) locking unallocated rewards in the contract. Users can exit immediately with <strong>100% of their principal (both staked NXD and any pending cooldown requests) with ZERO penalty</strong>, while simultaneously receiving all accrued ETH and XEN rewards.
+                  Governance-activated safeguard. When enabled (
+                  <code>emergencyWithdrawEnabled = true</code>), active reward emission streams are
+                  safely paused (<code>_pauseEthStream</code>, <code>_pauseXenStream</code>) locking
+                  unallocated rewards in the contract. Users can exit immediately with{' '}
+                  <strong>
+                    100% of their principal (both staked NXD and any pending cooldown requests) with
+                    ZERO penalty
+                  </strong>
+                  , while simultaneously receiving all accrued ETH and XEN rewards.
                 </p>
               </li>
             </ul>

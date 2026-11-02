@@ -17,7 +17,10 @@ describe('MermaidDiagram', () => {
   });
 
   it('renders title if provided', () => {
-    vi.mocked(mermaid.render).mockResolvedValue({ svg: '<svg>test</svg>', bindFunctions: vi.fn() } as any);
+    vi.mocked(mermaid.render).mockResolvedValue({
+      svg: '<svg>test</svg>',
+      bindFunctions: vi.fn(),
+    } as any);
 
     render(<MermaidDiagram chart="graph TD; A-->B;" title="Architecture Flow" />);
 
@@ -35,7 +38,10 @@ describe('MermaidDiagram', () => {
     await waitFor(() => {
       expect(container.querySelector('[data-testid="generated-svg"]')).toBeInTheDocument();
     });
-    expect(mermaid.render).toHaveBeenCalledWith(expect.stringMatching(/^mermaid-/), 'graph TD; A-->B;');
+    expect(mermaid.render).toHaveBeenCalledWith(
+      expect.stringMatching(/^mermaid-/),
+      'graph TD; A-->B;'
+    );
   });
 
   it('displays error message when mermaid.render throws', async () => {

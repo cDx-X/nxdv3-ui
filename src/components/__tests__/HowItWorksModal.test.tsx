@@ -10,13 +10,19 @@ describe('HowItWorksModal', () => {
 
   it('renders the guide and table in the report layout', () => {
     const { container } = render(<HowItWorksModal isOpen onClose={vi.fn()} />);
-    expect(screen.getByRole('heading', { name: 'NXD v3 — Protocol Documentation' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Multi-Tier Deposit Minting Engine/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'NXD v3 — Protocol Documentation' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /Multi-Tier Deposit Minting Engine/ })
+    ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Security Architecture/ })).toBeInTheDocument();
     const modal = container.querySelector('.modal-content');
     expect(modal).toHaveStyle({ maxWidth: '900px' });
     expect(modal?.getAttribute('style')).toContain('92vw');
-    expect(container.querySelector('.how-it-works-body')).toContainElement(screen.getByRole('table'));
+    expect(container.querySelector('.how-it-works-body')).toContainElement(
+      screen.getByRole('table')
+    );
     expect(screen.getByRole('table').parentElement).toHaveClass('doc-table-wrapper');
     expect(screen.getAllByRole('row')).toHaveLength(7);
   });

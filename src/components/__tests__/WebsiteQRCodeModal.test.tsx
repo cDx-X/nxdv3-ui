@@ -27,7 +27,10 @@ describe('WebsiteQRCodeModal', () => {
     const img = screen.getByAltText('QR Code to NXDv3 App');
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', expect.stringContaining('api.qrserver.com'));
-    expect(img).toHaveAttribute('src', expect.stringContaining(encodeURIComponent(window.location.origin)));
+    expect(img).toHaveAttribute(
+      'src',
+      expect.stringContaining(encodeURIComponent(window.location.origin))
+    );
 
     expect(screen.getByText(window.location.origin)).toBeInTheDocument();
   });

@@ -15,28 +15,29 @@ export const HowItWorksPart2: React.FC = () => (
         <strong>Asynchronous Gas-Optimized Processing (TaxRecipientV3):</strong>
       </p>
       <p>
-        To prevent high gas overhead and slippage during regular transfers, 
-        tax handling is decoupled:
+        To prevent high gas overhead and slippage during regular transfers, tax handling is
+        decoupled:
       </p>
       <ul>
-        <li> 
+        <li>
           <strong>30% of the tax</strong> is burned immediately
         </li>
       </ul>
-        ,while the remaining 70% is transferred directly to TaxRecipientV3 
-        to be processed asynchronously via processTax():
-      
+      ,while the remaining 70% is transferred directly to TaxRecipientV3 to be processed
+      asynchronously via processTax():
       <ul>
         <li>
-          <strong>40% of Total Tax:</strong> Swapped for DXNv2 on Uniswap V2 (protected by TWAP Price Oracles).
+          <strong>40% of Total Tax:</strong> Swapped for DXNv2 on Uniswap V2 (protected by TWAP
+          Price Oracles).
         </li>
         <li>
-          <strong>30% of Total Tax:</strong> paired with DXNv2 to auto-inject Protocol-Owned Liquidity (Auto-LP) into Uniswap V2, 
-          strengthening the NXDv3/DXNv2 price floor.
+          <strong>30% of Total Tax:</strong> paired with DXNv2 to auto-inject Protocol-Owned
+          Liquidity (Auto-LP) into Uniswap V2, strengthening the NXDv3/DXNv2 price floor.
         </li>
         <li>
-          <strong>DXNv2 Restaking:</strong> 25% of accumulated DXNv2 is restaked into the DBxenv2 protocol.
-          </li>
+          <strong>DXNv2 Restaking:</strong> 25% of accumulated DXNv2 is restaked into the DBxenv2
+          protocol.
+        </li>
       </ul>
     </div>
 
@@ -70,8 +71,9 @@ export const HowItWorksPart2: React.FC = () => (
         </li>
         <li>
           <strong>Two-Step Governance:</strong> Administrative control over parameters (slippageBps,
-          taxProcessor, rewardsProcessor) is governed by a 2-step transfer pattern (transferGovernance
-          and acceptGovernance), preventing accidental assignment to null or invalid addresses.
+          taxProcessor, rewardsProcessor) is governed by a 2-step transfer pattern
+          (transferGovernance and acceptGovernance), preventing accidental assignment to null or
+          invalid addresses.
         </li>
       </ul>
     </div>
@@ -136,7 +138,6 @@ export const HowItWorksPart2: React.FC = () => (
         Meanwhile, automated protocol engines buy back tokens, reinforce liquidity, and burn supply
         in the background to build long-term value.
       </p>
-      
     </div>
   </>
 );

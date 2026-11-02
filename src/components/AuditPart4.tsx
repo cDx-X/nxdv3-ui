@@ -4,9 +4,7 @@ export const AuditPart4: React.FC = () => {
   return (
     <div className="audit-section-stack">
       <div>
-        <h3>
-          4. Security & Vulnerability Analysis
-        </h3>
+        <h3>4. Security & Vulnerability Analysis</h3>
         <div className="doc-table-wrapper">
           <table>
             <thead>
@@ -40,16 +38,23 @@ export const AuditPart4: React.FC = () => {
                 <td>MEV / Sandwich Exploitation</td>
                 <td className="audit-status">SECURED</td>
                 <td>
-                  Uniswap V3 operations use 10-minute TWAP queries (<code>MIN_SECONDS_AGO = 600</code>, <code>v3Oracle.getHumanQuote</code>). Uniswap
-                  V2 swaps query 30-minute cumulative time-weighted reserves (<code>PERIOD = 30 minutes</code>, <code>v2Oracle.consult</code>). Swaps enforce
-                  minimum output thresholds parameterized by governance-controlled slippage tolerances (<code>slippageBps</code>).
+                  Uniswap V3 operations use 10-minute TWAP queries (
+                  <code>MIN_SECONDS_AGO = 600</code>, <code>v3Oracle.getHumanQuote</code>). Uniswap
+                  V2 swaps query 30-minute cumulative time-weighted reserves (
+                  <code>PERIOD = 30 minutes</code>, <code>v2Oracle.consult</code>). Swaps enforce
+                  minimum output thresholds parameterized by governance-controlled slippage
+                  tolerances (<code>slippageBps</code>).
                 </td>
               </tr>
               <tr>
                 <td>L2 Sequencer Downtime & Stale Prices</td>
                 <td className="audit-status">SECURED</td>
                 <td>
-                  Both V2Oracle and V3Oracle integrate Chainlink's L2 Sequencer Uptime Feed with a mandatory 1-hour grace period (<code>GRACE_PERIOD_TIME = 3600s</code>) after any sequencer restart, preventing trades at stale prices before arbitrageurs rebalance pools. V2Oracle additionally enforces a 2-hour maximum price age limit (<code>MAX_AGE = 2 hours</code>).
+                  Both V2Oracle and V3Oracle integrate Chainlink's L2 Sequencer Uptime Feed with a
+                  mandatory 1-hour grace period (<code>GRACE_PERIOD_TIME = 3600s</code>) after any
+                  sequencer restart, preventing trades at stale prices before arbitrageurs rebalance
+                  pools. V2Oracle additionally enforces a 2-hour maximum price age limit (
+                  <code>MAX_AGE = 2 hours</code>).
                 </td>
               </tr>
               <tr>
@@ -95,4 +100,3 @@ export const AuditPart4: React.FC = () => {
     </div>
   );
 };
-

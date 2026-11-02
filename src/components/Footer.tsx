@@ -214,8 +214,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-bottom-text">
-         Non-custodial interface to third-party contracts. Not financial advice. No
-          warranty.
+          Non-custodial interface to third-party contracts. Not financial advice. No warranty.
         </div>
       </footer>
 

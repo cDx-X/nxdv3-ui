@@ -23,7 +23,7 @@ vi.mock('ethers', () => {
     encodeFunctionData: vi.fn().mockReturnValue('0x'),
     decodeFunctionResult: vi.fn().mockReturnValue([100n]),
   }));
-  
+
   return {
     ethers: {
       Contract: vi.fn().mockImplementation(() => ({
@@ -97,8 +97,8 @@ describe('ProtocolDeposit', () => {
   it('renders deposit card with title', () => {
     render(
       React.createElement(ProtocolDeposit, {
-        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576"
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
       })
     );
 
@@ -111,8 +111,8 @@ describe('ProtocolDeposit', () => {
     (useWallet as any).mockReturnValue({ ...mockWalletContext, isConnected: false });
     render(
       React.createElement(ProtocolDeposit, {
-        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576"
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
       })
     );
 
@@ -122,8 +122,8 @@ describe('ProtocolDeposit', () => {
   it('shows deposit input field', () => {
     render(
       React.createElement(ProtocolDeposit, {
-        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576"
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
       })
     );
 
@@ -133,8 +133,8 @@ describe('ProtocolDeposit', () => {
   it('shows deposit button', () => {
     render(
       React.createElement(ProtocolDeposit, {
-        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576"
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
       })
     );
 
@@ -146,8 +146,8 @@ describe('ProtocolDeposit', () => {
   it('shows DXN balance', () => {
     render(
       React.createElement(ProtocolDeposit, {
-        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576"
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
       })
     );
 
@@ -175,8 +175,8 @@ describe('ProtocolDeposit', () => {
 
     render(
       React.createElement(ProtocolDeposit, {
-        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576",
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
       })
     );
 
@@ -208,8 +208,8 @@ describe('ProtocolDeposit', () => {
 
     render(
       React.createElement(ProtocolDeposit, {
-        protocolAddress: "0x8C6f6ec2281D5678844556887DEDa5cEC907De87",
-        dxnAddress: "0x90386DA49028ef1eF18F47f0a740cAAB50782576",
+        protocolAddress: '0x8C6f6ec2281D5678844556887DEDa5cEC907De87',
+        dxnAddress: '0x90386DA49028ef1eF18F47f0a740cAAB50782576',
       })
     );
 

@@ -4,9 +4,7 @@ export const AuditPart1: React.FC = () => {
   return (
     <div className="audit-section-stack">
       <div>
-        <h3>
-          1. Executive Summary
-        </h3>
+        <h3>1. Executive Summary</h3>
         <p className="audit-intro">
           The NXD v3 Protocol is a decentralized ecosystem integrating deflationary tokenomics,
           autonomous liquidity balancing, multi-tier minting, and dual-asset staking rewards. The
@@ -24,8 +22,8 @@ export const AuditPart1: React.FC = () => {
           </li>
           <li>
             <strong>NXDv3Protocol.sol</strong>: The primary coordinator handling CREATE2 token
-            deployment, tiered deposit-based minting, DBXen fee harvesting, and automated multi-stage
-            reward distribution.
+            deployment, tiered deposit-based minting, DBXen fee harvesting, and automated
+            multi-stage reward distribution.
           </li>
           <li>
             <strong>NXDv3StakingVault.sol</strong>: A dual-reward (ETH and XEN) staking vault
@@ -36,25 +34,19 @@ export const AuditPart1: React.FC = () => {
       </div>
 
       <div>
-        <h3>
-          Key Architectural Strengths
-        </h3>
+        <h3>Key Architectural Strengths</h3>
         <div className="audit-section-stack">
           <div>
-            <h4>
-              1. DEX-Decoupled Transfers
-            </h4>
+            <h4>1. DEX-Decoupled Transfers</h4>
             <p>
               Standard ERC-20 transfers never trigger on-chain swaps. The transfer hook (
-              <code>_update</code>) strictly performs balances updates, immediate burn execution, and
-              fee transfers. Slippage, routing, and decentralized exchange (DEX) interactions are
-              handled asynchronously via dedicated functions.
+              <code>_update</code>) strictly performs balances updates, immediate burn execution,
+              and fee transfers. Slippage, routing, and decentralized exchange (DEX) interactions
+              are handled asynchronously via dedicated functions.
             </p>
           </div>
           <div>
-            <h4>
-              2. Deterministic Liquidity Ownership
-            </h4>
+            <h4>2. Deterministic Liquidity Ownership</h4>
             <p>
               All liquidity tokens minted via the tax engine are held by the TaxRecipientV3 contract
               itself with no withdrawal or extraction functions, establishing permanent,
@@ -62,21 +54,19 @@ export const AuditPart1: React.FC = () => {
             </p>
           </div>
           <div>
-            <h4>
-              3. Dual Continuous Reward Streaming
-            </h4>
+            <h4>3. Dual Continuous Reward Streaming</h4>
             <p>
-              Instead of lump-sum block distributions, staking rewards are streamed continuously over
-              7-day periods, protecting stakers against flash-loan dilution and sandwich attacks.
+              Instead of lump-sum block distributions, staking rewards are streamed continuously
+              over 7-day periods, protecting stakers against flash-loan dilution and sandwich
+              attacks.
             </p>
           </div>
           <div>
-            <h4>
-              4. Resilient Error Handling
-            </h4>
+            <h4>4. Resilient Error Handling</h4>
             <p>
-              Both native ETH and ERC-20 token distributions employ non-reverting external calls with
-              internal balance state restorations to prevent denial-of-service (DoS) vulnerabilities.
+              Both native ETH and ERC-20 token distributions employ non-reverting external calls
+              with internal balance state restorations to prevent denial-of-service (DoS)
+              vulnerabilities.
             </p>
           </div>
         </div>

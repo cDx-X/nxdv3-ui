@@ -82,7 +82,9 @@ export async function fetchVaultRewards(forceFull = false): Promise<VaultRewards
     rawInflow.forEach((item: any, idx: number) => {
       const ep = item?.epoch !== undefined ? Number(item.epoch) : Number(item[0] ?? idx);
       const startTime =
-        item?.startTime !== undefined ? Number(item.startTime) : Number(item[1] ?? (startTs + ep * 604800));
+        item?.startTime !== undefined
+          ? Number(item.startTime)
+          : Number(item[1] ?? startTs + ep * 604800);
       const ethAmount =
         item?.ethAmount !== undefined ? BigInt(item.ethAmount) : BigInt(item[2] ?? 0);
       const xenAmount =
@@ -134,7 +136,7 @@ export async function fetchVaultRewardsPaginated(
   const rawInflow = res[0]?.success && Array.isArray(res[0].result) ? res[0].result : [];
 
   return rawInflow.map((item: any, idx: number) => {
-    const ep = item?.epoch !== undefined ? Number(item.epoch) : Number(item[0] ?? (fromEpoch + idx));
+    const ep = item?.epoch !== undefined ? Number(item.epoch) : Number(item[0] ?? fromEpoch + idx);
     const startTime = item?.startTime !== undefined ? Number(item.startTime) : Number(item[1] ?? 0);
     const ethAmount = item?.ethAmount !== undefined ? BigInt(item.ethAmount) : BigInt(item[2] ?? 0);
     const xenAmount = item?.xenAmount !== undefined ? BigInt(item.xenAmount) : BigInt(item[3] ?? 0);
@@ -148,4 +150,3 @@ export async function fetchVaultRewardsPaginated(
     };
   });
 }
-

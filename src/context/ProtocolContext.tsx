@@ -105,7 +105,9 @@ function getSavedGlobalState(): GlobalProtocolState {
       totalNXDBurned: BigInt(parsed.totalNXDBurned || '0'),
       totalDXNBurned: BigInt(parsed.totalDXNBurned || '0'),
       totalDXNStaked: BigInt(parsed.totalDXNStaked || '0'),
-      totalETHSentToVault: BigInt(parsed.totalETHSentToVault || parsed.totalETHToStakingVault || '0'),
+      totalETHSentToVault: BigInt(
+        parsed.totalETHSentToVault || parsed.totalETHToStakingVault || '0'
+      ),
       totalXENSentToVault: BigInt(parsed.totalXENSentToVault || parsed.totalXENBought || '0'),
       nxdMaxSupply: BigInt(parsed.nxdMaxSupply || '0'),
       burnedPercentage: Number(parsed.burnedPercentage || 0),
@@ -118,7 +120,9 @@ function getSavedGlobalState(): GlobalProtocolState {
       totalVaultStaked: BigInt(parsed.totalVaultStaked || '0'),
       emergencyWithdrawEnabled: Boolean(parsed.emergencyWithdrawEnabled),
       xenVaultBalance: BigInt(parsed.xenVaultBalance || '0'),
-      totalETHToStakingVault: BigInt(parsed.totalETHSentToVault || parsed.totalETHToStakingVault || '0'),
+      totalETHToStakingVault: BigInt(
+        parsed.totalETHSentToVault || parsed.totalETHToStakingVault || '0'
+      ),
       totalXENBought: BigInt(parsed.totalXENSentToVault || parsed.totalXENBought || '0'),
       isLoaded: true,
     };
@@ -281,7 +285,11 @@ export const ProtocolProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // [5] 6. Total ETH Sent to Vault: NXDv3StakingVault.cumulativeRewardsSinceStart()
         { target: vAddr, abi: NXDv3StakingVaultABI, functionName: 'cumulativeRewardsSinceStart' },
         // [6] 7. Total XEN Sent to Vault: NXDv3StakingVault.cumulativeXenRewardsSinceStart()
-        { target: vAddr, abi: NXDv3StakingVaultABI, functionName: 'cumulativeXenRewardsSinceStart' },
+        {
+          target: vAddr,
+          abi: NXDv3StakingVaultABI,
+          functionName: 'cumulativeXenRewardsSinceStart',
+        },
         // [7] 8. Max Supply: NXDv3ERC20.maxSupply()
         { target: nxdAddr, abi: NXDv3ERC20ABI, functionName: 'maxSupply' },
         // [8] NXDv3Protocol.nxdMintedViaDeposit()
@@ -318,9 +326,7 @@ export const ProtocolProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       // 9. % NXD Burned vs Max Supply (Frontend calculation)
       const burnedPercentage =
-        nxdMaxSupply > 0n
-          ? Number((totalNXDBurned * 1000000n) / nxdMaxSupply) / 10000
-          : 0;
+        nxdMaxSupply > 0n ? Number((totalNXDBurned * 1000000n) / nxdMaxSupply) / 10000 : 0;
 
       const effectiveSupplyVal = gRes[0]?.success
         ? BigInt(gRes[0].result || 0)

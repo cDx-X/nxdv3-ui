@@ -29,7 +29,7 @@ describe('EpochBurnChart', () => {
     localStorage.clear();
     mockMulticall.mockResolvedValue([
       { success: true, result: 1700000000n }, // firstBurnTimestamp
-      { success: true, result: 2n },          // currentEpoch
+      { success: true, result: 2n }, // currentEpoch
       { success: true, result: 150000000000000000000n }, // totalNXDBurned (150 NXD)
       {
         success: true,
@@ -44,9 +44,11 @@ describe('EpochBurnChart', () => {
 
   it('renders chart with title', () => {
     mockMulticall.mockReturnValue(new Promise(() => {}));
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     expect(screen.getByText(/NXDv3 Burn Volume/)).toBeInTheDocument();
   });
@@ -54,44 +56,54 @@ describe('EpochBurnChart', () => {
   it('shows loading state initially when no cache exists', () => {
     // Return pending promise so it stays loading
     mockMulticall.mockReturnValue(new Promise(() => {}));
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     expect(screen.getByText(/Loading epoch data/)).toBeInTheDocument();
   });
 
   it('shows first burn date label', () => {
     mockMulticall.mockReturnValue(new Promise(() => {}));
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     expect(screen.getByText(/First Burn/)).toBeInTheDocument();
   });
 
   it('shows current epoch label', () => {
     mockMulticall.mockReturnValue(new Promise(() => {}));
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     expect(screen.getByText(/Active Epoch/)).toBeInTheDocument();
   });
 
   it('shows total burned label', () => {
     mockMulticall.mockReturnValue(new Promise(() => {}));
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     expect(screen.getByText(/Total NXD Burned/)).toBeInTheDocument();
   });
 
   it('fetches and renders epoch data bars correctly', async () => {
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Epoch #2')).toBeInTheDocument();
@@ -127,9 +139,11 @@ describe('EpochBurnChart', () => {
     };
     localStorage.setItem('nxdv3_epoch_burn_cache_v3', JSON.stringify(cachedData));
 
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     // Epoch number labels stay under the bars
     expect(screen.getByText('Ep #0')).toBeInTheDocument();
@@ -139,9 +153,11 @@ describe('EpochBurnChart', () => {
   });
 
   it('shows hovered epoch details on mouse enter and clears on mouse leave', async () => {
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Ep #1')).toBeInTheDocument();
@@ -182,13 +198,14 @@ describe('EpochBurnChart', () => {
     };
     localStorage.setItem('nxdv3_epoch_burn_cache_v3', JSON.stringify(cachedData));
 
-    render(React.createElement(EpochBurnChart, {
-      nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
-    }));
+    render(
+      React.createElement(EpochBurnChart, {
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
+      })
+    );
 
     expect(screen.getByText('Epoch #5')).toBeInTheDocument();
     expect(screen.getByText('Ep #0')).toBeInTheDocument();
     expect(screen.getByText('Ep #5')).toBeInTheDocument();
   });
 });
-

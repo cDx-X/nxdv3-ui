@@ -166,7 +166,11 @@ describe('MintingTierChart', () => {
     const target = { style: { cursor: '' } };
     const mockChart = { update: vi.fn() };
     act(() => {
-      capturedOptions.plugins.legend.onHover({ native: { target } }, { datasetIndex: 0 }, { chart: mockChart });
+      capturedOptions.plugins.legend.onHover(
+        { native: { target } },
+        { datasetIndex: 0 },
+        { chart: mockChart }
+      );
     });
     expect(target.style.cursor).toBe('pointer');
     expect(mockChart.update).toHaveBeenCalledWith('none');
@@ -194,5 +198,4 @@ describe('MintingTierChart', () => {
     expect(yCostTickFn(1.205)).toBe('1.205');
     expect(yCostTickFn(1.15)).toBe('1.150');
   });
-
 });

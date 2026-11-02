@@ -1,7 +1,18 @@
 import React from 'react';
 import { useProtocol } from '../context/ProtocolContext';
 import { ethers } from 'ethers';
-import { RefreshCw, Activity, Flame, Coins, ShieldCheck, PieChart, Sparkles, Clock, ShieldAlert, Lock } from 'lucide-react';
+import {
+  RefreshCw,
+  Activity,
+  Flame,
+  Coins,
+  ShieldCheck,
+  PieChart,
+  Sparkles,
+  Clock,
+  ShieldAlert,
+  Lock,
+} from 'lucide-react';
 
 interface ProtocolStatsWindowProps {
   protocolAddress?: string;
@@ -156,7 +167,6 @@ export const ProtocolStatsWindow: React.FC<ProtocolStatsWindowProps> = React.mem
           <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             {stats.effectiveSupply}
           </span>
-          
         </div>
 
         {/* 3. Total NXD Mined (Minted) */}
@@ -184,7 +194,6 @@ export const ProtocolStatsWindow: React.FC<ProtocolStatsWindowProps> = React.mem
           <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             {stats.totalMinted}
           </span>
-          
         </div>
 
         {/* 4. Total NXD Burned */}
@@ -212,7 +221,6 @@ export const ProtocolStatsWindow: React.FC<ProtocolStatsWindowProps> = React.mem
           <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f87171' }}>
             {stats.totalNXDBurned}
           </span>
-          
         </div>
 
         {/* 5. % NXD Burned (vs Max Supply) */}
@@ -369,7 +377,6 @@ export const ProtocolStatsWindow: React.FC<ProtocolStatsWindowProps> = React.mem
           <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fb923c' }}>
             {stats.totalDXNBurned}
           </span>
-          
         </div>
 
         {/* 10. Total DXN Staked */}
@@ -397,7 +404,6 @@ export const ProtocolStatsWindow: React.FC<ProtocolStatsWindowProps> = React.mem
           <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             {stats.totalDXNStaked}
           </span>
-          
         </div>
 
         {/* 11. Withdraw Cooldown */}
@@ -449,9 +455,7 @@ export const ProtocolStatsWindow: React.FC<ProtocolStatsWindowProps> = React.mem
               Early Withdraw Penalty
             </span>
           </div>
-          <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f87171' }}>
-            25%
-          </span>
+          <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f87171' }}>25%</span>
         </div>
       </div>
     </div>

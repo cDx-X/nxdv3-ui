@@ -200,21 +200,15 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
 
   const ethOptions = useMemo(
     () =>
-      buildOptions(
-        AXIS_COLORS.eth,
-        'ETH',
-        formatEthTick,
-        (i) => (ethVisible[i] ? `Ep #${ethVisible[i].epoch} (${ethVisible[i].date})` : '')
+      buildOptions(AXIS_COLORS.eth, 'ETH', formatEthTick, (i) =>
+        ethVisible[i] ? `Ep #${ethVisible[i].epoch} (${ethVisible[i].date})` : ''
       ),
     [ethVisible]
   );
   const xenOptions = useMemo(
     () =>
-      buildOptions(
-        AXIS_COLORS.xen,
-        'XEN',
-        formatXenTick,
-        (i) => (xenVisible[i] ? `Ep #${xenVisible[i].epoch} (${xenVisible[i].date})` : '')
+      buildOptions(AXIS_COLORS.xen, 'XEN', formatXenTick, (i) =>
+        xenVisible[i] ? `Ep #${xenVisible[i].epoch} (${xenVisible[i].date})` : ''
       ),
     [xenVisible]
   );
@@ -225,7 +219,7 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
     <div className="flex flex-col gap-6 w-full">
       <div>
         <p className="text-xs text-secondary">
-          Historical ETH and XEN reward inflows sent to the Vault per 7-day epoch. 
+          Historical ETH and XEN reward inflows sent to the Vault per 7-day epoch.
         </p>
       </div>
 
@@ -269,7 +263,12 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
             <div className="card p-4 relative flex flex-col epochs-chart-box">
               <div
                 className="vault-rewards-header"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '0.25rem',
+                }}
               >
                 <span style={{ fontSize: '11px', color: AXIS_COLORS.eth, fontWeight: 700 }}>
                   ETH Inflow per 7-Day Epoch
@@ -319,7 +318,12 @@ export const VaultRewardsChart: React.FC = React.memo(() => {
             <div className="card p-4 relative flex flex-col epochs-chart-box">
               <div
                 className="vault-rewards-header"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '0.25rem',
+                }}
               >
                 <span style={{ fontSize: '11px', color: AXIS_COLORS.xen, fontWeight: 700 }}>
                   XEN Inflow per 7-Day Epoch

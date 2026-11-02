@@ -152,11 +152,12 @@ describe('WalletContext', () => {
   });
 
   describe('hasConfiguredAddresses', () => {
-    const makeConfig = (protocolAddress: string) => ({
-      chainId: 10,
-      name: 'Optimism',
-      addresses: { protocolAddress },
-    } as any);
+    const makeConfig = (protocolAddress: string) =>
+      ({
+        chainId: 10,
+        name: 'Optimism',
+        addresses: { protocolAddress },
+      }) as any;
 
     it('returns true when protocolAddress is set', () => {
       expect(hasConfiguredAddresses(makeConfig('0x1234'))).toBe(true);
@@ -171,11 +172,13 @@ describe('WalletContext', () => {
     });
 
     it('returns false when protocolAddress is missing', () => {
-      expect(hasConfiguredAddresses({
-        chainId: 10,
-        name: 'Optimism',
-        addresses: {},
-      } as any)).toBe(false);
+      expect(
+        hasConfiguredAddresses({
+          chainId: 10,
+          name: 'Optimism',
+          addresses: {},
+        } as any)
+      ).toBe(false);
     });
 
     it('returns false for PulseChain placeholder', () => {
@@ -279,7 +282,9 @@ describe('WalletContext', () => {
       await waitFor(() => {
         expect(screen.getByTestId('connected')).toHaveTextContent('yes');
       });
-      expect(screen.getByTestId('address')).toHaveTextContent('0x1234567890123456789012345678901234567890');
+      expect(screen.getByTestId('address')).toHaveTextContent(
+        '0x1234567890123456789012345678901234567890'
+      );
       expect(screen.getByTestId('chainId')).toHaveTextContent('10');
       expect(screen.getByTestId('network')).toHaveTextContent('Optimism');
     });

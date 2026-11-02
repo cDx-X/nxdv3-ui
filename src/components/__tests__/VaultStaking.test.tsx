@@ -73,7 +73,7 @@ vi.mock('ethers', () => {
       decodeFunctionResult: vi.fn().mockReturnValue([100n]),
     };
   });
-  
+
   return {
     ethers: {
       Contract: vi.fn().mockImplementation(function () {
@@ -110,8 +110,8 @@ describe('VaultStaking', () => {
   it('renders staking card with title', () => {
     renderWithProviders(
       React.createElement(VaultStaking, {
-        vaultAddress: "0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1",
-        nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
       })
     );
 
@@ -122,8 +122,8 @@ describe('VaultStaking', () => {
     (useWallet as any).mockReturnValue({ ...mockWalletContext, isConnected: false });
     renderWithProviders(
       React.createElement(VaultStaking, {
-        vaultAddress: "0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1",
-        nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
       })
     );
 
@@ -133,8 +133,8 @@ describe('VaultStaking', () => {
   it('shows disabled stake button when allowance is 0', () => {
     renderWithProviders(
       React.createElement(VaultStaking, {
-        vaultAddress: "0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1",
-        nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
       })
     );
 
@@ -149,8 +149,8 @@ describe('VaultStaking', () => {
     });
     renderWithProviders(
       React.createElement(VaultStaking, {
-        vaultAddress: "0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1",
-        nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
       })
     );
 
@@ -161,8 +161,8 @@ describe('VaultStaking', () => {
   it('shows claim rewards button', () => {
     renderWithProviders(
       React.createElement(VaultStaking, {
-        vaultAddress: "0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1",
-        nxdAddress: "0x3d1758d8b7f47b0922A1e9b19465259092F28486"
+        vaultAddress: '0x5B65373fbC6485338C4cd57D4823AB5901Cc14C1',
+        nxdAddress: '0x3d1758d8b7f47b0922A1e9b19465259092F28486',
       })
     );
 

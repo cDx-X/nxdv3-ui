@@ -300,5 +300,4 @@ describe('ProtocolDeposit Transactions', () => {
     const noMintInput = screen.getByPlaceholderText(/0.0 DXNv2/) as HTMLInputElement;
     expect(noMintInput.value).toBeTruthy();
   });
-
 });

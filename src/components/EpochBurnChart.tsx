@@ -97,8 +97,7 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
           const epNum = item?.epoch !== undefined ? Number(item.epoch) : Number(item[0] ?? idx);
           const startTs =
             item?.startTime !== undefined ? Number(item.startTime) : Number(item[1] ?? 0);
-          const burnedWei =
-            item?.burned !== undefined ? BigInt(item.burned) : BigInt(item[2] ?? 0);
+          const burnedWei = item?.burned !== undefined ? BigInt(item.burned) : BigInt(item[2] ?? 0);
 
           list.push({
             epochIndex: epNum,
@@ -146,9 +145,7 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
   return (
     <div className="flex flex-col gap-4 w-full">
       <div>
-        <p className="text-xs text-secondary">
-          Historical 7-day epoch burn analytics. 
-        </p>
+        <p className="text-xs text-secondary">Historical 7-day epoch burn analytics.</p>
       </div>
 
       {/* Summary Cards */}
@@ -247,7 +244,7 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
             className="text-sm font-bold text-white mt-1 truncate"
             style={{ whiteSpace: 'nowrap' }}
           >
-            7 Days 
+            7 Days
           </span>
         </div>
       </div>
@@ -428,4 +425,3 @@ export const EpochBurnChart: React.FC<{ nxdAddress?: string }> = ({
     </div>
   );
 };
-

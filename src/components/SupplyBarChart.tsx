@@ -191,9 +191,7 @@ export const SupplyBarChart: React.FC<{
             <span className="text-base font-bold text-blue-400 mt-1">
               {sd.s.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
-            <span className="text-[11px] text-blue-400 font-medium">
-              {sd.sR.toFixed(1)}% Ratio
-            </span>
+            <span className="text-[11px] text-blue-400 font-medium">{sd.sR.toFixed(1)}% Ratio</span>
           </div>
           <div className="card px-3 py-2 flex flex-col justify-between">
             <span className="text-xs text-secondary flex items-center gap-1.5">

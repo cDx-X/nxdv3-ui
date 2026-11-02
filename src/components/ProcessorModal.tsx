@@ -37,7 +37,11 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
     if (!isOpen) return;
     try {
       const activeProvider = provider || ethers.getDefaultProvider('https://mainnet.optimism.io');
-      const protocolContract = new ethers.Contract(PROTOCOL_ADDRESS, NXDv3ProtocolABI, activeProvider);
+      const protocolContract = new ethers.Contract(
+        PROTOCOL_ADDRESS,
+        NXDv3ProtocolABI,
+        activeProvider
+      );
       const nxdContract = new ethers.Contract(NXD_TOKEN_ADDRESS, NXDv3ERC20ABI, activeProvider);
 
       const [claimable, protocolEthBal, taxRecipientBal] = await Promise.all([
@@ -151,9 +155,15 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
         style={{ maxWidth: '680px', width: '92vw' }}
       >
         <div className="modal-header">
-          <div className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            className="flex items-center gap-2"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
             <Cpu size={22} className="text-amber-400" style={{ color: '#f59e0b' }} />
-            <h2 className="text-lg font-bold text-white" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+            <h2
+              className="text-lg font-bold text-white"
+              style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', margin: 0 }}
+            >
               NXDv3 Processor Dashboard
             </h2>
           </div>
@@ -202,10 +212,12 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                   <strong>Function:</strong> <code>collectFees()</code>
                 </div>
                 <div>
-                  <strong>What it does:</strong> Gathers available protocol fee earnings into the processor contract.
+                  <strong>What it does:</strong> Gathers available protocol fee earnings into the
+                  processor contract.
                 </div>
                 <div style={{ color: 'var(--text-primary)' }}>
-                  <strong>Why it is essential:</strong> Prepares protocol revenue for reward processing and distribution to stakers.
+                  <strong>Why it is essential:</strong> Prepares protocol revenue for reward
+                  processing and distribution to stakers.
                 </div>
               </div>
             )}
@@ -218,9 +230,7 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                 {loadingCollect ? 'Collecting...' : 'Collect ETH rewards'}
               </button>
 
-              <span className="processor-value">
-                {claimableFeesData} ETH
-              </span>
+              <span className="processor-value">{claimableFeesData} ETH</span>
             </div>
             {collectResult && (
               <div
@@ -230,9 +240,11 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                   padding: '8px 12px',
                   borderRadius: '6px',
                   fontSize: '0.8rem',
-                  background: collectResult.includes('Error') ? 'rgba(185, 28, 28, 0.25)' : 'rgba(16, 185, 129, 0.25)',
+                  background: collectResult.includes('Error')
+                    ? 'rgba(185, 28, 28, 0.25)'
+                    : 'rgba(16, 185, 129, 0.25)',
                   color: collectResult.includes('Error') ? '#fca5a5' : '#6ee7b7',
-                  border: `1px solid ${collectResult.includes('Error') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                  border: `1px solid ${collectResult.includes('Error') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
                 }}
               >
                 {collectResult}
@@ -242,7 +254,14 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
 
           {/* Row 2: Process ETH rewards */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px', marginTop: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: '4px',
+                marginTop: '12px',
+              }}
+            >
               <button
                 className="btn btn-secondary"
                 onClick={() => setShowRewardsInfo(!showRewardsInfo)}
@@ -279,10 +298,12 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                   <strong>Function:</strong> <code>processRewards()</code>
                 </div>
                 <div>
-                  <strong>What it does:</strong> Executes reward distribution, burns DXN, and sends ETH/XEN rewards to the Staking Vault.
+                  <strong>What it does:</strong> Executes reward distribution, burns DXN, and sends
+                  ETH/XEN rewards to the Staking Vault.
                 </div>
                 <div style={{ color: 'var(--text-primary)' }}>
-                  <strong>Why it is essential:</strong> Core automation function that maintains protocol economics, rewards stakers, and drives deflation.
+                  <strong>Why it is essential:</strong> Core automation function that maintains
+                  protocol economics, rewards stakers, and drives deflation.
                 </div>
               </div>
             )}
@@ -295,9 +316,7 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                 {loadingRewards ? 'Processing...' : 'Process ETH rewards'}
               </button>
 
-              <span className="processor-value">
-                {protocolBalanceData} ETH
-              </span>
+              <span className="processor-value">{protocolBalanceData} ETH</span>
             </div>
             {rewardsResult && (
               <div
@@ -307,9 +326,11 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                   padding: '8px 12px',
                   borderRadius: '6px',
                   fontSize: '0.8rem',
-                  background: rewardsResult.includes('Error') ? 'rgba(185, 28, 28, 0.25)' : 'rgba(16, 185, 129, 0.25)',
+                  background: rewardsResult.includes('Error')
+                    ? 'rgba(185, 28, 28, 0.25)'
+                    : 'rgba(16, 185, 129, 0.25)',
                   color: rewardsResult.includes('Error') ? '#fca5a5' : '#6ee7b7',
-                  border: `1px solid ${rewardsResult.includes('Error') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                  border: `1px solid ${rewardsResult.includes('Error') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
                 }}
               >
                 {rewardsResult}
@@ -319,7 +340,14 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
 
           {/* Row 3: Process tax */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px', marginTop: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: '4px',
+                marginTop: '12px',
+              }}
+            >
               <button
                 className="btn btn-secondary"
                 onClick={() => setShowTaxInfo(!showTaxInfo)}
@@ -356,7 +384,8 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                   <strong>Function:</strong> <code>processTax()</code>
                 </div>
                 <div>
-                  <strong>What it does:</strong> Processes  accumulated NXDv3 tax balance (stakes DXNv2, adds NXDv3/DXNv2 liquidity).
+                  <strong>What it does:</strong> Processes accumulated NXDv3 tax balance (stakes
+                  DXNv2, adds NXDv3/DXNv2 liquidity).
                 </div>
                 <div style={{ color: 'var(--text-primary)' }}>
                   <strong>Why it is essential:</strong> Processes taxes in favor of the protocol.
@@ -372,9 +401,7 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                 {loadingTax ? 'Processing...' : 'Process tax'}
               </button>
 
-              <span className="processor-value">
-                {taxRecipientBalanceData} NXD
-              </span>
+              <span className="processor-value">{taxRecipientBalanceData} NXD</span>
             </div>
             {taxResult && (
               <div
@@ -384,9 +411,11 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
                   padding: '8px 12px',
                   borderRadius: '6px',
                   fontSize: '0.8rem',
-                  background: taxResult.includes('Error') ? 'rgba(185, 28, 28, 0.25)' : 'rgba(16, 185, 129, 0.25)',
+                  background: taxResult.includes('Error')
+                    ? 'rgba(185, 28, 28, 0.25)'
+                    : 'rgba(16, 185, 129, 0.25)',
                   color: taxResult.includes('Error') ? '#fca5a5' : '#6ee7b7',
-                  border: `1px solid ${taxResult.includes('Error') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                  border: `1px solid ${taxResult.includes('Error') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
                 }}
               >
                 {taxResult}
@@ -405,7 +434,7 @@ export const ProcessorModal: React.FC<ProcessorModalProps> = ({ isOpen, onClose 
             style={{
               minHeight: '36px',
               padding: '6px 18px',
-              fontSize: '0.875rem'
+              fontSize: '0.875rem',
             }}
           >
             Close

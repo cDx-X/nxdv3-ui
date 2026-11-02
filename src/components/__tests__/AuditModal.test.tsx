@@ -17,9 +17,13 @@ describe('AuditModal', () => {
 
   it('renders the audit report in the shared report layout', () => {
     const { container } = render(<AuditModal isOpen onClose={vi.fn()} />);
-    expect(screen.getByRole('heading', { name: /A.I. Smart Contract Architecture/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /A.I. Smart Contract Architecture/ })
+    ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '1. Executive Summary' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '4. Security & Vulnerability Analysis' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: '4. Security & Vulnerability Analysis' })
+    ).toBeInTheDocument();
     const modal = container.querySelector('.modal-content');
     expect(modal).toHaveStyle({ maxWidth: '900px' });
     expect(modal?.getAttribute('style')).toContain('92vw');

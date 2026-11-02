@@ -387,7 +387,8 @@ export const WhyModal: React.FC<WhyModalProps> = ({ isOpen, onClose }) => {
                   <code
                     {...props}
                     style={{
-                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                      fontFamily:
+                        'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                       fontSize: '0.86em',
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
                       color: 'var(--accent-gold)',
@@ -409,7 +410,14 @@ export const WhyModal: React.FC<WhyModalProps> = ({ isOpen, onClose }) => {
                   />
                 ),
                 table: ({ node, ...props }) => (
-                  <div style={{ overflowX: 'auto', margin: '1.25rem 0 1.75rem 0', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                  <div
+                    style={{
+                      overflowX: 'auto',
+                      margin: '1.25rem 0 1.75rem 0',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-color)',
+                    }}
+                  >
                     <table
                       {...props}
                       style={{
