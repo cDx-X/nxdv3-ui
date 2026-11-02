@@ -119,6 +119,14 @@ describe('Footer', () => {
     expect(screen.getByText('Community')).toBeInTheDocument();
   });
 
+  it('renders github community link', () => {
+    render(React.createElement(Footer));
+
+    const githubLink = screen.getByTitle('GitHub');
+    expect(githubLink).toBeInTheDocument();
+    expect(githubLink).toHaveAttribute('href', 'https://github.com/cDx-X/nxdv3-ui.git');
+  });
+
   it('renders footer bottom text', () => {
     render(React.createElement(Footer));
 
