@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { TermsModal } from '../TermsModal';
 
 describe('TermsModal', () => {
@@ -37,5 +37,26 @@ describe('TermsModal', () => {
     expect(backdrop).toBeInTheDocument();
     fireEvent.click(backdrop!);
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('copies content to clipboard and toggles copied state', async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    render(<TermsModal isOpen={true} onClose={vi.fn()} />);
+
+    const copyBtn = screen.getByRole('button', { name: /Copy/i });
+    expect(screen.getByText('Copy')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(copyBtn);
+    });
+
+    expect(writeTextMock).toHaveBeenCalled();
+    expect(screen.getByText('Copied')).toBeInTheDocument();
   });
 });

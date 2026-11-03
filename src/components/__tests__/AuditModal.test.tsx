@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, act } from '@testing-library/react';
 
 vi.mock('../MermaidDiagram', () => ({
   MermaidDiagram: ({ title }: { title?: string }) => (
@@ -42,5 +42,26 @@ describe('AuditModal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close Audit Report' }));
     fireEvent.click(container.firstElementChild!);
     expect(onClose).toHaveBeenCalledTimes(3);
+  });
+
+  it('copies content to clipboard and toggles copied state', async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    render(<AuditModal isOpen={true} onClose={vi.fn()} />);
+
+    const copyBtn = screen.getByRole('button', { name: /Copy/i });
+    expect(screen.getByText('Copy')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(copyBtn);
+    });
+
+    expect(writeTextMock).toHaveBeenCalled();
+    expect(screen.getByText('Copied')).toBeInTheDocument();
   });
 });

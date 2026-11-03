@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, HelpCircle, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -228,7 +228,15 @@ The NXDv3 architecture resolves all primary security risks, economic vulnerabili
 `;
 
 export const WhyModal: React.FC<WhyModalProps> = ({ isOpen, onClose }) => {
+  const [copied, setCopied] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(markdownContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -242,9 +250,26 @@ export const WhyModal: React.FC<WhyModalProps> = ({ isOpen, onClose }) => {
             <HelpCircle size={20} className="icon-gold" />
             <h2 className="text-lg font-bold">Why NXDv3? — Technical Audit & Comparison Report</h2>
           </div>
-          <button className="modal-close-btn" onClick={onClose} title="Close">
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="btn btn-secondary"
+              onClick={handleCopy}
+              style={{
+                padding: '4px 8px',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+              title="Copy as Markdown"
+            >
+              {copied ? <Check size={14} className="icon-success" /> : <Copy size={14} />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
+            </button>
+            <button className="modal-close-btn" onClick={onClose} title="Close">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <div

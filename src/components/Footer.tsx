@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CONTRACT_ADDRESSES } from '../abis/contracts';
-import { Copy, ExternalLink, BookOpen, Scale, Check, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Copy, ExternalLink, BookOpen, Scale, Check, ShieldCheck, HelpCircle, Mail } from 'lucide-react';
 import { TermsModal } from './TermsModal';
 import { AuditModal } from './AuditModal';
 import { HowItWorksModal } from './HowItWorksModal';
@@ -209,6 +209,47 @@ export const Footer: React.FC = () => {
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.08-.78 4.23-1.84 7.05-3.05 8.46-3.63 4.03-1.68 4.86-1.97 5.41-1.98.12 0 .38.03.55.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z" />
                 </svg>
               </a>
+              <a
+                href="mailto:nxdv3protocol@gmail.com"
+                className="footer-social-btn"
+                title="Email"
+              >
+                <Mail size={16} />
+              </a>
+            </div>
+            <div style={{ marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                className="footer-link-item"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  font: 'inherit',
+                  textAlign: 'left',
+                  width: '100%',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+                onClick={() => handleCopy('email', 'nxdv3protocol@gmail.com')}
+                title="Click to copy email"
+              >
+                {copiedKey === 'email' ? (
+                  <>
+                    <Check size={14} className="icon-success" />
+                    <span style={{ color: 'var(--accent-gold)' }}>nxdv3protocol@gmail.com (Copied!)</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} />
+                    <span>nxdv3protocol@gmail.com</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

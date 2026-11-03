@@ -12,6 +12,7 @@ vi.mock('lucide-react', () => ({
   ShieldCheck: () => React.createElement('span', null, 'ShieldCheck'),
   HelpCircle: () => React.createElement('span', null, 'HelpCircle'),
   X: () => React.createElement('span', null, 'X'),
+  Mail: () => React.createElement('span', null, 'Mail'),
 }));
 
 // Mock child components
@@ -125,6 +126,40 @@ describe('Footer', () => {
     const githubLink = screen.getByTitle('GitHub');
     expect(githubLink).toBeInTheDocument();
     expect(githubLink).toHaveAttribute('href', 'https://github.com/cDx-X/nxdv3-ui.git');
+  });
+
+  it('renders email community link and allows copying email text', () => {
+    vi.useFakeTimers();
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    render(React.createElement(Footer));
+
+    // Email icon link should have mailto:
+    const emailIconLink = screen.getByTitle('Email');
+    expect(emailIconLink).toHaveAttribute('href', 'mailto:nxdv3protocol@gmail.com');
+
+    // Email copy button should be present
+    const emailButton = screen.getByTitle('Click to copy email');
+    expect(emailButton).toBeInTheDocument();
+    expect(screen.getByText('nxdv3protocol@gmail.com')).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(emailButton);
+    });
+
+    expect(writeTextMock).toHaveBeenCalledWith('nxdv3protocol@gmail.com');
+    expect(screen.getByText(/Copied!/)).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    vi.useRealTimers();
   });
 
   it('renders footer bottom text', () => {
